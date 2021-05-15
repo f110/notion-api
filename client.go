@@ -24,6 +24,7 @@ var (
 	ErrLimitExceeded    = errors.New("notion: limit exceeded")
 	ErrUserNotFound     = errors.New("notion: user not found")
 	ErrDatabaseNotFound = errors.New("notion: database not found")
+	ErrPageNotFound     = errors.New("notion: page not found")
 )
 
 type Client struct {
@@ -241,6 +242,37 @@ func (c *Client) GetPages(ctx context.Context, databaseID string, filter *Filter
 	}
 
 	return pages, nil
+}
+
+// GetPage can get single page.
+// ref: https://developers.notion.com/reference/get-page
+func (c *Client) GetPage(ctx context.Context, pageID string) (*Page, error) {
+	req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/pages/%s", pageID), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return nil, ErrPageNotFound
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusTooManyRequests:
+		return nil, ErrLimitExceeded
+	}
+
+	obj := &Page{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("failed parse a response body: %v", err)
+	}
+
+	return obj, nil
 }
 
 func (c *Client) newRequest(ctx context.Context, method string, apiPath string, params *url.Values, body io.Reader) (*http.Request, error) {

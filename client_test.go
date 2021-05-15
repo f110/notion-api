@@ -504,3 +504,180 @@ func TestGetPages(t *testing.T) {
 	assert.Equal(t, "last_edited_by", page.Properties["Test18"].Type)
 	assert.Equal(t, "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7", page.Properties["Test18"].LastEditedBy.ID)
 }
+
+func TestGetPage(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/get-page.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodGet,
+		regexp.MustCompile(`/v1/pages/[a-z0-9-]{36}`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	page, err := client.GetPage(context.Background(), "16493215-50a8-41b8-8b43-0a0c014a7910")
+	require.NoError(t, err)
+
+	assert.Equal(t, "page", page.Object)
+	assert.Equal(t, "16493215-50a8-41b8-8b43-0a0c014a7910", page.ID)
+	assert.Equal(t, int64(1621070820), page.CreatedTime.Unix())
+	assert.Equal(t, int64(1621079040), page.LastEditedTime.Unix())
+	if assert.NotNil(t, page.Parent) {
+		assert.Equal(t, "ba8e1263-af24-4cd0-87e0-6e2933303b60", page.Parent.DatabaseID)
+	}
+	assert.False(t, page.Archived)
+	assert.Len(t, page.Properties, 19)
+
+	require.NotNil(t, page.Properties["Name"])
+	require.NotNil(t, page.Properties["Tags"])
+	require.NotNil(t, page.Properties["Test1"])
+	require.NotNil(t, page.Properties["Test2"])
+	require.NotNil(t, page.Properties["Test3"])
+	require.NotNil(t, page.Properties["Test4"])
+	require.NotNil(t, page.Properties["Test5"])
+	require.NotNil(t, page.Properties["Test6"])
+	require.NotNil(t, page.Properties["Test7"])
+	require.NotNil(t, page.Properties["Test8"])
+	require.NotNil(t, page.Properties["Test9"])
+	require.NotNil(t, page.Properties["Test10"])
+	require.NotNil(t, page.Properties["Test11"])
+	require.NotNil(t, page.Properties["Test12"])
+	require.NotNil(t, page.Properties["Test13"])
+	// TODO: This is probably bug of Notion.
+	//require.NotNil(t, page.Properties["Test14"])
+	require.NotNil(t, page.Properties["Test15"])
+	require.NotNil(t, page.Properties["Test16"])
+	require.NotNil(t, page.Properties["Test17"])
+	require.NotNil(t, page.Properties["Test18"])
+
+	assert.Equal(t, "title", page.Properties["Name"].Type)
+	if assert.Len(t, page.Properties["Name"].Title, 1) {
+		title := page.Properties["Name"].Title[0]
+		assert.Equal(t, "text", title.Type)
+		if assert.NotNil(t, title.Text) {
+			assert.Equal(t, "Foo", title.Text.Content)
+			assert.Nil(t, title.Text.Link)
+		}
+		assert.Equal(t, "Foo", title.PlainText)
+		assert.Empty(t, title.Href)
+		if assert.NotNil(t, title.Annotations) {
+			assert.False(t, title.Annotations.Bold)
+			assert.False(t, title.Annotations.Italic)
+			assert.False(t, title.Annotations.Strikethrough)
+			assert.False(t, title.Annotations.Underline)
+			assert.False(t, title.Annotations.Code)
+			assert.Equal(t, "default", title.Annotations.Color)
+		}
+	}
+
+	assert.Equal(t, "multi_select", page.Properties["Tags"].Type)
+	if assert.Len(t, page.Properties["Tags"].MultiSelect, 1) {
+		option := page.Properties["Tags"].MultiSelect[0]
+		assert.Equal(t, "f7b8bf43-e891-49d4-bde5-9206f68f7ec4", option.ID)
+		assert.Equal(t, "Foobar", option.Name)
+		assert.Equal(t, "yellow", option.Color)
+	}
+
+	assert.Equal(t, "text", page.Properties["Test1"].Type)
+	if assert.NotNil(t, page.Properties["Test1"].Text) {
+		text := page.Properties["Test1"].Text[0]
+		assert.Equal(t, "text", text.Type)
+		if assert.NotNil(t, text.Text) {
+			assert.Equal(t, "Field", text.Text.Content)
+			assert.Nil(t, text.Text.Link)
+		}
+		assert.Equal(t, "Field", text.PlainText)
+		assert.Empty(t, text.Href)
+		assert.False(t, text.Annotations.Bold)
+		assert.False(t, text.Annotations.Italic)
+		assert.False(t, text.Annotations.Strikethrough)
+		assert.False(t, text.Annotations.Underline)
+		assert.False(t, text.Annotations.Code)
+		assert.Equal(t, "default", text.Annotations.Color)
+	}
+
+	assert.Equal(t, "number", page.Properties["Test2"].Type)
+	assert.Equal(t, 190, page.Properties["Test2"].Number)
+
+	assert.Equal(t, "select", page.Properties["Test3"].Type)
+	if assert.NotNil(t, page.Properties["Test3"].Select) {
+		sel := page.Properties["Test3"].Select
+		assert.Equal(t, "3e3c5d58-4313-439e-a46e-cfaacc843d09", sel.ID)
+		assert.Equal(t, "Baz", sel.Name)
+		assert.Equal(t, "gray", sel.Color)
+	}
+
+	assert.Equal(t, "multi_select", page.Properties["Test4"].Type)
+	if assert.Len(t, page.Properties["Test4"].MultiSelect, 1) {
+		option := page.Properties["Test4"].MultiSelect[0]
+		assert.Equal(t, "3fe82728-0646-45db-89cf-025ac1a20f02", option.ID)
+		assert.Equal(t, "Notion", option.Name)
+		assert.Equal(t, "red", option.Color)
+	}
+
+	assert.Equal(t, "date", page.Properties["Test5"].Type)
+	if assert.NotNil(t, page.Properties["Test5"].Date) {
+		assert.Equal(t, "2021-05-15", page.Properties["Test5"].Date.Start.Format("2006-01-02"))
+	}
+
+	assert.Equal(t, "people", page.Properties["Test6"].Type)
+	if assert.Len(t, page.Properties["Test6"].People, 1) {
+		people := page.Properties["Test6"].People[0]
+		assert.Equal(t, "user", people.Object)
+		assert.Equal(t, "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7", people.ID)
+		assert.Equal(t, "Foo Bar", people.Name)
+		assert.Equal(t, "https://lh4.googleusercontent.com/baz/AAAAAAAAAAI/AAAAAAAAAAA/foobar/photo.jpg", people.AvatarURL)
+		assert.Equal(t, "person", people.Type)
+		if assert.NotNil(t, people.Person) {
+			assert.Equal(t, "foo@example.com", people.Person.Email)
+		}
+	}
+
+	assert.Equal(t, "files", page.Properties["Test7"].Type)
+	if assert.Len(t, page.Properties["Test7"].Files, 1) {
+		assert.Equal(t, "test.txt", page.Properties["Test7"].Files[0].Name)
+	}
+
+	assert.Equal(t, "checkbox", page.Properties["Test8"].Type)
+	assert.True(t, page.Properties["Test8"].Checkbox)
+
+	assert.Equal(t, "url", page.Properties["Test9"].Type)
+	assert.Equal(t, "https://example.com", page.Properties["Test9"].URL)
+
+	assert.Equal(t, "email", page.Properties["Test10"].Type)
+	assert.Equal(t, "foo@example.com", page.Properties["Test10"].Email)
+
+	assert.Equal(t, "phone_number", page.Properties["Test11"].Type)
+	assert.Equal(t, "+81-23-4567-8901", page.Properties["Test11"].PhoneNumber)
+
+	assert.Equal(t, "formula", page.Properties["Test12"].Type)
+	if assert.NotNil(t, page.Properties["Test12"].Formula) {
+		assert.Equal(t, "string", page.Properties["Test12"].Formula.Type)
+		assert.Equal(t, "Foo", page.Properties["Test12"].Formula.String)
+	}
+
+	assert.Equal(t, "relation", page.Properties["Test13"].Type)
+	assert.Len(t, page.Properties["Test13"].Relation, 0)
+
+	assert.Equal(t, "created_time", page.Properties["Test15"].Type)
+	assert.Equal(t, int64(1621070820), page.Properties["Test15"].CreatedTime.Unix())
+
+	assert.Equal(t, "created_by", page.Properties["Test16"].Type)
+	if assert.NotNil(t, page.Properties["Test16"]) {
+		assert.Equal(t, "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7", page.Properties["Test16"].CreatedBy.ID)
+	}
+
+	assert.Equal(t, "last_edited_time", page.Properties["Test17"].Type)
+	assert.Equal(t, int64(1621079040), page.Properties["Test17"].LastEditedTime.Unix())
+
+	assert.Equal(t, "last_edited_by", page.Properties["Test18"].Type)
+	assert.Equal(t, "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7", page.Properties["Test18"].LastEditedBy.ID)
+}
