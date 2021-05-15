@@ -162,7 +162,7 @@ func getPages(args []string) error {
 		return err
 	}
 	for _, page := range pages {
-		fmt.Printf("%+v\n", page)
+		fmt.Printf("ID: %s %+v\n", page.ID, page)
 	}
 
 	return nil
