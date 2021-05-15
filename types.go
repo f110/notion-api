@@ -157,24 +157,24 @@ type PropertyMetadata struct {
 	Type string `json:"type"`
 
 	Title          *RichTextObject      `json:"title,omitempty"`
-	RichText       *RichTextObject      `json:"rich_text,omitempty"`
+	RichText       *struct{}            `json:"rich_text,omitempty"`
 	Number         *NumberProperty      `json:"number,omitempty"`
 	Select         *SelectProperty      `json:"select,omitempty"`
 	MultiSelect    *MultiSelectProperty `json:"multi_select,omitempty"`
-	Date           *DateProperty        `json:"date,omitempty"`
-	Formula        *FormulaProperty     `json:"formula,omitempty"`
-	Relation       *RelationProperty    `json:"relation,omitempty"`
-	Checkbox       *CheckboxProperty    `json:"checkbox,omitempty"`
-	Rollup         *RollupProperty      `json:"rollup,omitempty"`
-	People         *PeopleProperty      `json:"people,omitempty"`
-	Files          *FilesProperty       `json:"files,omitempty"`
-	URL            *URLProperty         `json:"url,omitempty"`
-	Email          *EmailProperty       `json:"email,omitempty"`
-	PhoneNumber    *PhoneNumberProperty `json:"phone_number,omitempty"`
-	CreatedTime    *Time                `json:"created_time,omitempty"`
-	CreatedBy      *PeopleProperty      `json:"created_by,omitempty"`
-	LastEditedTime *Time                `json:"last_edited_time,omitempty"`
-	LastEditedBy   *Meta                `json:"last_edited_by,omitempty"`
+	Date           *struct{}            `json:"date,omitempty"`
+	Formula        *struct{}            `json:"formula,omitempty"`
+	Relation       *struct{}            `json:"relation,omitempty"`
+	Checkbox       *struct{}            `json:"checkbox,omitempty"`
+	Rollup         *struct{}            `json:"rollup,omitempty"`
+	People         *struct{}            `json:"people,omitempty"`
+	Files          *struct{}            `json:"files,omitempty"`
+	URL            *struct{}            `json:"url,omitempty"`
+	Email          *struct{}            `json:"email,omitempty"`
+	PhoneNumber    *struct{}            `json:"phone_number,omitempty"`
+	CreatedTime    *struct{}            `json:"created_time,omitempty"`
+	CreatedBy      *struct{}            `json:"created_by,omitempty"`
+	LastEditedTime *struct{}            `json:"last_edited_time,omitempty"`
+	LastEditedBy   *struct{}            `json:"last_edited_by,omitempty"`
 }
 
 type NumberProperty struct {
@@ -209,40 +209,12 @@ type FormulaProperty struct {
 	Date    *DateProperty `json:"date,omitempty"`
 }
 
-type RelationProperty struct {
-	Relation []*Meta `json:"relation"`
-}
-
-type CheckboxProperty struct {
-	Checkbox bool `json:"checkbox,omitempty"`
-}
-
 type RollupProperty struct {
 	Type string `json:"type"`
 
 	Number *NumberProperty     `json:"number,omitempty"`
 	Date   *DateProperty       `json:"date,omitempty"`
 	Array  []*PropertyMetadata `json:"array,omitempty"`
-}
-
-type PeopleProperty struct {
-	People *User `json:"people"`
-}
-
-type FilesProperty struct {
-	Files []*Meta `json:"files"`
-}
-
-type URLProperty struct {
-	URL string `json:"url"`
-}
-
-type EmailProperty struct {
-	Email string `json:"email"`
-}
-
-type PhoneNumberProperty struct {
-	PhoneNumber string `json:"phone_number"`
 }
 
 // Page is a page object.
@@ -285,6 +257,7 @@ type PropertyData struct {
 	PhoneNumber    string            `json:"phone_number,omitempty"`
 	Formula        *FormulaProperty  `json:"formula,omitempty"`
 	Relation       []*Meta           `json:"relation,omitempty"`
+	RollupProperty *RollupProperty   `json:"rollup_property,omitempty"`
 	CreatedTime    *Time             `json:"created_time,omitempty"`
 	CreatedBy      *User             `json:"created_by,omitempty"`
 	LastEditedTime *Time             `json:"last_edited_time,omitempty"`
