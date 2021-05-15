@@ -1,0 +1,10 @@
+{
+  "object": "user",
+  "id": "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7",
+  "name": "Foo Bar",
+  "avatar_url": "https://lh4.googleusercontent.com/baz/AAAAAAAAAAI/AAAAAAAAAAA/foobar/photo.jpg",
+  "type": "person",
+  "person": {
+    "email": "foo@example.com"
+  }
+}

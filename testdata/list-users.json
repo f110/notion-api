@@ -1,0 +1,25 @@
+{
+  "object": "list",
+  "results": [
+    {
+      "object": "user",
+      "id": "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7",
+      "name": "Foo Bar",
+      "avatar_url": "https://lh4.googleusercontent.com/baz/AAAAAAAAAAI/AAAAAAAAAAA/foobar/photo.jpg",
+      "type": "person",
+      "person": {
+        "email": "foo@example.com"
+      }
+    },
+    {
+      "object": "user",
+      "id": "3035d2ba-99ae-4f0b-a1fe-8bfb783706b0",
+      "name": "Bot",
+      "avatar_url": null,
+      "type": "bot",
+      "bot": {}
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}

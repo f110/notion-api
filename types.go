@@ -26,6 +26,12 @@ type Time struct {
 const ISO8601 = "2006-01-02T15:04:05.999-0700"
 
 func (t *Time) UnmarshalJSON(data []byte) error {
+	// {} is Zero.
+	// []byte{123, 125} is "{}".
+	if bytes.Equal(data, []byte{123, 125}) {
+		t.Time = time.Time{}
+		return nil
+	}
 	if bytes.HasSuffix(data, []byte("Z\"")) {
 		p, err := time.Parse("\"2006-01-02T15:04:05.999Z\"", string(data))
 		if err != nil {
@@ -135,10 +141,10 @@ type Link struct {
 type Database struct {
 	*Meta
 
-	CreatedTime    Time                 `json:"created_time"`
-	LastEditedTime Time                 `json:"last_edited_time"`
-	Title          []*RichTextObject    `json:"title"`
-	Properties     map[string]*Property `json:"properties"`
+	CreatedTime    Time                         `json:"created_time"`
+	LastEditedTime Time                         `json:"last_edited_time"`
+	Title          []*RichTextObject            `json:"title"`
+	Properties     map[string]*PropertyMetadata `json:"properties"`
 }
 
 type DatabaseList struct {
@@ -146,41 +152,44 @@ type DatabaseList struct {
 	Results []*Database `json:"results"`
 }
 
-type Property struct {
+type PropertyMetadata struct {
 	ID   string `json:"id,omitempty"`
 	Type string `json:"type"`
 
-	Title          []*RichTextObject      `json:"title,omitempty"`
-	RichText       []*RichTextObject      `json:"rich_text,omitempty"`
-	Number         *NumberProperty        `json:"number,omitempty"`
-	Select         *SelectProperty        `json:"select,omitempty"`
-	MultiSelect    []*MultiSelectProperty `json:"multi_select,omitempty"`
-	Date           *DateProperty          `json:"date,omitempty"`
-	Formula        *FormulaProperty       `json:"formula,omitempty"`
-	Relation       *RelationProperty      `json:"relation,omitempty"`
-	Checkbox       bool                   `json:"checkbox,omitempty"`
-	Rollup         *RollupProperty        `json:"rollup,omitempty"`
-	People         *PeopleProperty        `json:"people,omitempty"`
-	Files          *FilesProperty         `json:"files,omitempty"`
-	URL            string                 `json:"url,omitempty"`
-	Email          string                 `json:"email,omitempty"`
-	PhoneNumber    string                 `json:"phone_number,omitempty"`
-	CreatedTime    *Time                  `json:"created_time,omitempty"`
-	LastEditedTime *Time                  `json:"last_edited_time,omitempty"`
-	LastEditedBy   *Meta                  `json:"last_edited_by,omitempty"`
+	Title          *RichTextObject      `json:"title,omitempty"`
+	RichText       *RichTextObject      `json:"rich_text,omitempty"`
+	Number         *NumberProperty      `json:"number,omitempty"`
+	Select         *SelectProperty      `json:"select,omitempty"`
+	MultiSelect    *MultiSelectProperty `json:"multi_select,omitempty"`
+	Date           *DateProperty        `json:"date,omitempty"`
+	Formula        *FormulaProperty     `json:"formula,omitempty"`
+	Relation       *RelationProperty    `json:"relation,omitempty"`
+	Checkbox       *CheckboxProperty    `json:"checkbox,omitempty"`
+	Rollup         *RollupProperty      `json:"rollup,omitempty"`
+	People         *PeopleProperty      `json:"people,omitempty"`
+	Files          *FilesProperty       `json:"files,omitempty"`
+	URL            *URLProperty         `json:"url,omitempty"`
+	Email          *EmailProperty       `json:"email,omitempty"`
+	PhoneNumber    *PhoneNumberProperty `json:"phone_number,omitempty"`
+	CreatedTime    *Time                `json:"created_time,omitempty"`
+	CreatedBy      *PeopleProperty      `json:"created_by,omitempty"`
+	LastEditedTime *Time                `json:"last_edited_time,omitempty"`
+	LastEditedBy   *Meta                `json:"last_edited_by,omitempty"`
 }
 
 type NumberProperty struct {
-	Number int `json:"number"`
+	Format string `json:"format"`
 }
 
 type SelectProperty struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Color string `json:"color"`
+	Options []*Option `json:"options"`
 }
 
 type MultiSelectProperty struct {
+	Options []*Option `json:"options"`
+}
+
+type Option struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Color string `json:"color"`
@@ -204,12 +213,16 @@ type RelationProperty struct {
 	Relation []*Meta `json:"relation"`
 }
 
+type CheckboxProperty struct {
+	Checkbox bool `json:"checkbox,omitempty"`
+}
+
 type RollupProperty struct {
 	Type string `json:"type"`
 
-	Number *NumberProperty `json:"number,omitempty"`
-	Date   *DateProperty   `json:"date,omitempty"`
-	Array  []*Property     `json:"array,omitempty"`
+	Number *NumberProperty     `json:"number,omitempty"`
+	Date   *DateProperty       `json:"date,omitempty"`
+	Array  []*PropertyMetadata `json:"array,omitempty"`
 }
 
 type PeopleProperty struct {
@@ -220,20 +233,66 @@ type FilesProperty struct {
 	Files []*Meta `json:"files"`
 }
 
+type URLProperty struct {
+	URL string `json:"url"`
+}
+
+type EmailProperty struct {
+	Email string `json:"email"`
+}
+
+type PhoneNumberProperty struct {
+	PhoneNumber string `json:"phone_number"`
+}
+
 // Page is a page object.
 // ref: https://developers.notion.com/reference/page
 type Page struct {
 	*Meta
 
-	CreatedTime    Time                 `json:"created_time"`
-	LastEditedTime Time                 `json:"last_edited_time"`
-	Archived       bool                 `json:"archived"`
-	Properties     map[string]*Property `json:"properties"`
+	CreatedTime    Time                     `json:"created_time"`
+	LastEditedTime Time                     `json:"last_edited_time"`
+	Archived       bool                     `json:"archived"`
+	Parent         *PageParent              `json:"parent,omitempty"`
+	Properties     map[string]*PropertyData `json:"properties"`
 }
 
 type PageList struct {
 	*ListMeta
 	Results []*Page `json:"results"`
+}
+
+type PageParent struct {
+	Type       string `json:"type"`
+	DatabaseID string `json:"database_id"`
+}
+
+type PropertyData struct {
+	ID   string `json:"id,omitempty"`
+	Type string `json:"type"`
+
+	Title          []*RichTextObject `json:"title,omitempty"`
+	MultiSelect    []*Option         `json:"multi_select,omitempty"`
+	Text           []*RichTextObject `json:"text,omitempty"`
+	Number         int               `json:"number,omitempty"`
+	Select         *Option           `json:"select,omitempty"`
+	Date           *DateProperty     `json:"date,omitempty"`
+	People         []*User           `json:"people,omitempty"`
+	Files          []*File           `json:"files,omitempty"`
+	Checkbox       bool              `json:"checkbox,omitempty"`
+	URL            string            `json:"url,omitempty"`
+	Email          string            `json:"email,omitempty"`
+	PhoneNumber    string            `json:"phone_number,omitempty"`
+	Formula        *FormulaProperty  `json:"formula,omitempty"`
+	Relation       []*Meta           `json:"relation,omitempty"`
+	CreatedTime    *Time             `json:"created_time,omitempty"`
+	CreatedBy      *User             `json:"created_by,omitempty"`
+	LastEditedTime *Time             `json:"last_edited_time,omitempty"`
+	LastEditedBy   *User             `json:"last_edited_by,omitempty"`
+}
+
+type File struct {
+	Name string `json:"name"`
 }
 
 type Filter struct {
