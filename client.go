@@ -352,6 +352,43 @@ func (c *Client) CreatePage(ctx context.Context, page *Page) (*Page, error) {
 	return obj, nil
 }
 
+func (c *Client) UpdateProperties(ctx context.Context, pageID string, properties map[string]*PropertyData) (*Page, error) {
+	body := struct {
+		Properties map[string]*PropertyData `json:"properties"`
+	}{
+		Properties: properties,
+	}
+
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(body); err != nil {
+		return nil, fmt.Errorf("notion: failed to encode request body: %v", err)
+	}
+	req, err := c.newRequest(ctx, http.MethodPatch, fmt.Sprintf("/pages/%s", pageID), nil, buf)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusTooManyRequests:
+		return nil, ErrLimitExceeded
+	}
+
+	obj := &Page{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("failed parse a response: %v", err)
+	}
+
+	return obj, nil
+}
+
 func (c *Client) newRequest(ctx context.Context, method string, apiPath string, params *url.Values, body io.Reader) (*http.Request, error) {
 	u := &url.URL{}
 	*u = *c.baseURL

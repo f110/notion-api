@@ -38,7 +38,7 @@ And example code exists under [example directory](./example)
 * [x] [List all users](https://developers.notion.com/reference/get-users)
 * [x] [Retrieve a page](https://developers.notion.com/reference/get-page)
 * [x] [Create a page](https://developers.notion.com/reference/post-page)
-* [ ] [Update a page properties](https://developers.notion.com/reference/patch-page)
+* [x] [Update page properties](https://developers.notion.com/reference/patch-page)
 * [x] [Retrieve block children](https://developers.notion.com/reference/get-block-children)
 * [ ] [Append block children](https://developers.notion.com/reference/patch-block-children)
 

@@ -796,3 +796,45 @@ func TestCreatePage(t *testing.T) {
 	assert.Equal(t, int64(1621158331), page.CreatedTime.Unix())
 	assert.Equal(t, int64(1621158331), page.LastEditedTime.Unix())
 }
+
+func TestPatchPage(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/patch-page.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodPatch,
+		regexp.MustCompile(`/v1/pages/[0-9a-z-]{36}$`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	properties := map[string]*PropertyData{
+		"Test1": {
+			Type: "rich_text",
+			RichText: []*RichTextObject{
+				{
+					Type: "text",
+					Text: &Text{
+						Content: "Update property",
+					},
+				},
+			},
+		},
+	}
+	page, err := client.UpdateProperties(context.Background(), "9585d9b5-ad82-4221-9f82-a3a4767d5b92", properties)
+	require.NoError(t, err)
+
+	assert.Equal(t, "9585d9b5-ad82-4221-9f82-a3a4767d5b92", page.ID)
+	if assert.NotNil(t, page.Properties["Test1"]) &&
+		assert.Len(t, page.Properties["Test1"].RichText, 1) &&
+		assert.NotNil(t, page.Properties["Test1"].RichText[0].Text) {
+		assert.Equal(t, "Update property", page.Properties["Test1"].RichText[0].Text.Content)
+	}
+}

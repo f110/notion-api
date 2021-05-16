@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -49,6 +50,11 @@ func main() {
 		}
 	case "create-page":
 		if err := createPage(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	case "update-properties":
+		if err := updateProperties(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -253,6 +259,59 @@ func createPage(args []string) error {
 		return err
 	}
 	fmt.Printf("ID: %s\n", page.ID)
+
+	return nil
+}
+
+func updateProperties(args []string) error {
+	token := ""
+	pageID := ""
+	fs := flag.NewFlagSet("create-page", flag.ContinueOnError)
+	fs.StringVar(&token, "token", "", "API Token")
+	fs.StringVar(&pageID, "page-id", "", "Page identifier")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	page, err := client.GetPage(context.Background(), pageID)
+	if err != nil {
+		return err
+	}
+
+	var key string
+	for k, v := range page.Properties {
+		if v.Type == "rich_text" {
+			key = k
+			break
+		}
+	}
+	if key == "" {
+		return errors.New("text field can not found")
+	}
+
+	properties := map[string]*notion.PropertyData{
+		key: {
+			Type: "rich_text",
+			RichText: []*notion.RichTextObject{
+				{
+					Type: "text",
+					Text: &notion.Text{
+						Content: "Update property",
+					},
+				},
+			},
+		},
+	}
+	page, err = client.UpdateProperties(context.Background(), pageID, properties)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %s %v\n", page.ID, page.Properties)
 
 	return nil
 }
