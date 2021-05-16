@@ -39,7 +39,7 @@ And example code exists under [example directory](./example)
 * [x] [Retrieve a page](https://developers.notion.com/reference/get-page)
 * [x] [Create a page](https://developers.notion.com/reference/post-page)
 * [ ] [Update a page properties](https://developers.notion.com/reference/patch-page)
-* [ ] [Retrieve block children](https://developers.notion.com/reference/get-block-children)
+* [x] [Retrieve block children](https://developers.notion.com/reference/get-block-children)
 * [ ] [Append block children](https://developers.notion.com/reference/patch-block-children)
 
 # Author
