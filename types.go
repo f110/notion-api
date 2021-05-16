@@ -375,3 +375,48 @@ type Sort struct {
 	Timestamp string `json:"timestamp"`
 	Direction string `json:"direction"`
 }
+
+// Block is a block object.
+// ref: https://developers.notion.com/reference/block
+type Block struct {
+	*Meta
+
+	CreatedTime    Time   `json:"created_time"`
+	LastEditedTime Time   `json:"last_edited_time"`
+	HasChildren    bool   `json:"has_children"`
+	Type           string `json:"type"`
+
+	Paragraph        *Paragraph `json:"paragraph,omitempty"`
+	Heading1         *Heading   `json:"heading_1,omitempty"`
+	Heading2         *Heading   `json:"heading_2,omitempty"`
+	Heading3         *Heading   `json:"heading_3,omitempty"`
+	BulletedListItem *Paragraph `json:"bulleted_list_item,omitempty"`
+	NumberedListItem *Paragraph `json:"numbered_list_item,omitempty"`
+	ToDo             *ToDo      `json:"to_do,omitempty"`
+	Toggle           *Paragraph `json:"toggle,omitempty"`
+	ChildPage        *ChildPage `json:"child_page,omitempty"`
+}
+
+type BlockList struct {
+	*ListMeta
+	Results []*Block `json:"results"`
+}
+
+type Paragraph struct {
+	Text     []*RichTextObject `json:"text,omitempty"`
+	Children []*Block          `json:"children,omitempty"`
+}
+
+type Heading struct {
+	Text []*RichTextObject `json:"text"`
+}
+
+type ToDo struct {
+	Text     []*RichTextObject `json:"text"`
+	Checked  bool              `json:"checked"`
+	Children []*RichTextObject `json:"children"`
+}
+
+type ChildPage struct {
+	Title string `json:"title"`
+}

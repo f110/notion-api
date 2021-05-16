@@ -681,3 +681,92 @@ func TestGetPage(t *testing.T) {
 	assert.Equal(t, "last_edited_by", page.Properties["Test18"].Type)
 	assert.Equal(t, "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7", page.Properties["Test18"].LastEditedBy.ID)
 }
+
+func TestGetBlocks(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/get-block-children.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodGet,
+		regexp.MustCompile(`/v1/blocks/[a-z0-9-]{36}/children`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	blocks, err := client.GetBlocks(context.Background(), "16493215-50a8-41b8-8b43-0a0c014a7910")
+	require.NoError(t, err)
+
+	require.Len(t, blocks, 10)
+
+	assert.Equal(t, "paragraph", blocks[0].Type)
+	if assert.NotNil(t, blocks[0].Paragraph) {
+		if assert.Len(t, blocks[0].Paragraph.Text, 1) {
+			assert.Equal(t, "text", blocks[0].Paragraph.Text[0].Type)
+			assert.Equal(t, "Body text", blocks[0].Paragraph.Text[0].PlainText)
+		}
+	}
+
+	assert.Equal(t, "heading_1", blocks[1].Type)
+	if assert.NotNil(t, blocks[1].Heading1) {
+		if assert.Len(t, blocks[1].Heading1.Text, 1) {
+			assert.Equal(t, "Title1", blocks[1].Heading1.Text[0].PlainText)
+		}
+	}
+
+	assert.Equal(t, "heading_2", blocks[2].Type)
+	if assert.NotNil(t, blocks[2].Heading2) {
+		if assert.Len(t, blocks[2].Heading2.Text, 1) {
+			assert.Equal(t, "Title2", blocks[2].Heading2.Text[0].PlainText)
+		}
+	}
+
+	assert.Equal(t, "heading_3", blocks[3].Type)
+	if assert.NotNil(t, blocks[3].Heading3) {
+		if assert.Len(t, blocks[3].Heading3.Text, 1) {
+			assert.Equal(t, "Title3", blocks[3].Heading3.Text[0].PlainText)
+		}
+	}
+
+	assert.Equal(t, "paragraph", blocks[4].Type)
+	if assert.NotNil(t, blocks[4].Paragraph) {
+		if assert.Len(t, blocks[4].Paragraph.Text, 3) {
+			assert.True(t, blocks[4].Paragraph.Text[0].Annotations.Bold)
+			assert.True(t, blocks[4].Paragraph.Text[1].Annotations.Italic)
+		}
+	}
+
+	// Actually, this block is a divider.
+	assert.Equal(t, "unsupported", blocks[5].Type)
+
+	assert.Equal(t, "bulleted_list_item", blocks[6].Type)
+	if assert.NotNil(t, blocks[6].BulletedListItem) {
+		if assert.Len(t, blocks[6].BulletedListItem.Text, 1) {
+			assert.Equal(t, "Bullet1", blocks[6].BulletedListItem.Text[0].PlainText)
+		}
+	}
+
+	assert.Equal(t, "bulleted_list_item", blocks[7].Type)
+	if assert.NotNil(t, blocks[7].BulletedListItem) {
+		if assert.Len(t, blocks[7].BulletedListItem.Text, 1) {
+			assert.Equal(t, "Bullet2", blocks[7].BulletedListItem.Text[0].PlainText)
+		}
+	}
+
+	// Actually, this block is a code block.
+	assert.Equal(t, "unsupported", blocks[8].Type)
+
+	assert.Equal(t, "paragraph", blocks[9].Type)
+	if assert.NotNil(t, blocks[9].Paragraph) {
+		if assert.Len(t, blocks[9].Paragraph.Text, 2) {
+			assert.True(t, blocks[9].Paragraph.Text[0].Annotations.Code)
+			assert.Equal(t, " foobar", blocks[9].Paragraph.Text[1].PlainText)
+		}
+	}
+}

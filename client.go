@@ -275,6 +275,50 @@ func (c *Client) GetPage(ctx context.Context, pageID string) (*Page, error) {
 	return obj, nil
 }
 
+// GetBlocks can get children block.
+// ref: https://developers.notion.com/reference/get-block-children
+func (c *Client) GetBlocks(ctx context.Context, pageID string) ([]*Block, error) {
+	params := &url.Values{}
+	params.Set("page_size", "100")
+
+	blocks := make([]*Block, 0)
+	for {
+		req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/blocks/%s/children", pageID), params, nil)
+		if err != nil {
+			return nil, err
+		}
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+
+		switch res.StatusCode {
+		case http.StatusOK:
+		case http.StatusBadRequest:
+			res.Body.Close()
+			return nil, ErrBadRequest
+		case http.StatusTooManyRequests:
+			res.Body.Close()
+			return nil, ErrLimitExceeded
+		}
+
+		obj := &BlockList{}
+		if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+			res.Body.Close()
+			return nil, fmt.Errorf("failed parse a response: %v", err)
+		}
+		blocks = append(blocks, obj.Results...)
+		res.Body.Close()
+
+		if !obj.HasMore {
+			break
+		}
+		params.Set("start_cursor", obj.NextCursor)
+	}
+
+	return blocks, nil
+}
+
 func (c *Client) newRequest(ctx context.Context, method string, apiPath string, params *url.Values, body io.Reader) (*http.Request, error) {
 	u := &url.URL{}
 	*u = *c.baseURL
