@@ -97,14 +97,14 @@ type UserList struct {
 }
 
 type RichTextObject struct {
-	PlainText   string          `json:"plain_text"`
-	Href        string          `json:"href"`
-	Annotations *TextAnnotation `json:"annotations"`
 	Type        string          `json:"type"`
+	PlainText   string          `json:"plain_text,omitempty"`
+	Href        string          `json:"href,omitempty"`
+	Annotations *TextAnnotation `json:"annotations,omitempty"`
 
-	Text     *Text     `json:"text"`
-	Mention  *Mention  `json:"mention"`
-	Equation *Equation `json:"equation"`
+	Text     *Text     `json:"text,omitempty"`
+	Mention  *Mention  `json:"mention,omitempty"`
+	Equation *Equation `json:"equation,omitempty"`
 }
 
 type TextAnnotation struct {
@@ -224,9 +224,10 @@ type Page struct {
 
 	CreatedTime    Time                     `json:"created_time"`
 	LastEditedTime Time                     `json:"last_edited_time"`
-	Archived       bool                     `json:"archived"`
+	Archived       bool                     `json:"archived,omitempty"`
 	Parent         *PageParent              `json:"parent,omitempty"`
 	Properties     map[string]*PropertyData `json:"properties"`
+	Children       []*Block                 `json:"children,omitempty"`
 }
 
 type PageList struct {
@@ -235,8 +236,12 @@ type PageList struct {
 }
 
 type PageParent struct {
-	Type       string `json:"type"`
-	DatabaseID string `json:"database_id"`
+	Type       string `json:"type,omitempty"`
+	DatabaseID string `json:"database_id,omitempty"`
+	PageID     string `json:"page_id,omitempty"`
+
+	Database *Database `json:"-"`
+	Page     *Page     `json:"-"`
 }
 
 type PropertyData struct {
@@ -246,6 +251,7 @@ type PropertyData struct {
 	Title          []*RichTextObject `json:"title,omitempty"`
 	MultiSelect    []*Option         `json:"multi_select,omitempty"`
 	Text           []*RichTextObject `json:"text,omitempty"`
+	RichText       []*RichTextObject `json:"rich_text,omitempty"`
 	Number         int               `json:"number,omitempty"`
 	Select         *Option           `json:"select,omitempty"`
 	Date           *DateProperty     `json:"date,omitempty"`

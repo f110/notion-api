@@ -47,6 +47,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "create-page":
+		if err := createPage(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "%s is not action\n", os.Args[1])
 		os.Exit(1)
@@ -195,6 +200,59 @@ func getBlocks(args []string) error {
 	for _, block := range blocks {
 		fmt.Printf("ID: %s %+v\n", block.ID, block)
 	}
+
+	return nil
+}
+
+func createPage(args []string) error {
+	token := ""
+	databaseID := ""
+	fs := flag.NewFlagSet("create-page", flag.ContinueOnError)
+	fs.StringVar(&token, "token", "", "API Token")
+	fs.StringVar(&databaseID, "database-id", "", "Parent database identifier")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	db, err := client.GetDatabase(context.Background(), databaseID)
+	if err != nil {
+		return err
+	}
+
+	newPage, err := notion.NewPage(db, "From sample CLI", nil)
+	if err != nil {
+		return err
+	}
+	var key string
+	for k, v := range db.Properties {
+		if v.Type == "rich_text" {
+			key = k
+			break
+		}
+	}
+	if key != "" {
+		newPage.SetProperty(key, &notion.PropertyData{
+			Type: "rich_text",
+			RichText: []*notion.RichTextObject{
+				{
+					Type: "text",
+					Text: &notion.Text{
+						Content: "Test value",
+					},
+				},
+			},
+		})
+	}
+	page, err := client.CreatePage(context.Background(), newPage)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %s\n", page.ID)
 
 	return nil
 }

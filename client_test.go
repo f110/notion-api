@@ -770,3 +770,29 @@ func TestGetBlocks(t *testing.T) {
 		}
 	}
 }
+
+func TestCreatePage(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/post-page.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodPost,
+		regexp.MustCompile(`/v1/pages$`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	page, err := client.CreatePage(context.Background(), &Page{})
+	require.NoError(t, err)
+
+	assert.Equal(t, "9585d9b5-ad82-4221-9f82-a3a4767d5b92", page.ID)
+	assert.Equal(t, int64(1621158331), page.CreatedTime.Unix())
+	assert.Equal(t, int64(1621158331), page.LastEditedTime.Unix())
+}
