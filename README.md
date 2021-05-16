@@ -5,6 +5,30 @@ API client for Notion written by Go.
 
 Currently under active development. All APIs will be changed possibly.
 
+# Usage
+
+First, import from your code.
+
+```go
+import "go.f110.dev/notion-api"
+```
+
+and you also need `golang.org/x/oauth2` module for *http.Client.
+
+```go
+import "golang.org/x/oauth2"
+```
+
+After import, you can create the client with *http.Client.
+
+```go
+ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+tc := oauth2.NewClient(context.Background(), ts)
+client, err := notion.New(tc, notion.BaseURL)
+```
+
+And example code exists under [example directory](./example)
+
 # Supported methods
 
 * [x] [Retrieve a database](https://developers.notion.com/reference/get-database)
