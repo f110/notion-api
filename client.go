@@ -352,6 +352,8 @@ func (c *Client) CreatePage(ctx context.Context, page *Page) (*Page, error) {
 	return obj, nil
 }
 
+// UpdateProperties can add and update the property.
+// ref: https://developers.notion.com/reference/patch-page
 func (c *Client) UpdateProperties(ctx context.Context, pageID string, properties map[string]*PropertyData) (*Page, error) {
 	body := struct {
 		Properties map[string]*PropertyData `json:"properties"`
