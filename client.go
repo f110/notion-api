@@ -391,6 +391,45 @@ func (c *Client) UpdateProperties(ctx context.Context, pageID string, properties
 	return obj, nil
 }
 
+// AppendBlock is appending new children block.
+// ref: https://developers.notion.com/reference/patch-block-children
+func (c *Client) AppendBlock(ctx context.Context, blockID string, children []*Block) (*Block, error) {
+	body := struct {
+		Children []*Block `json:"children"`
+	}{
+		Children: children,
+	}
+
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(body); err != nil {
+		return nil, fmt.Errorf("notion: failed to encode request body: %v", err)
+	}
+	req, err := c.newRequest(ctx, http.MethodPatch, fmt.Sprintf("/blocks/%s/children", blockID), nil, buf)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusTooManyRequests:
+		return nil, ErrLimitExceeded
+	}
+
+	obj := &Block{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("failed parse a response: %v", err)
+	}
+
+	return obj, nil
+}
+
 func (c *Client) newRequest(ctx context.Context, method string, apiPath string, params *url.Values, body io.Reader) (*http.Request, error) {
 	u := &url.URL{}
 	*u = *c.baseURL

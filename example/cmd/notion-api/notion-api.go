@@ -58,6 +58,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "append-blocks":
+		if err := appendBlocks(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "%s is not action\n", os.Args[1])
 		os.Exit(1)
@@ -312,6 +317,42 @@ func updateProperties(args []string) error {
 		return err
 	}
 	fmt.Printf("ID: %s %v\n", page.ID, page.Properties)
+
+	return nil
+}
+
+func appendBlocks(args []string) error {
+	token := ""
+	pageID := ""
+	fs := flag.NewFlagSet("append-blocks", flag.ContinueOnError)
+	fs.StringVar(&token, "token", "", "API Token")
+	fs.StringVar(&pageID, "page-id", "", "Page identifier")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	block, err := client.AppendBlock(context.Background(), pageID, []*notion.Block{
+		{
+			Meta: &notion.Meta{
+				Object: "block",
+			},
+			Type: "paragraph",
+			Paragraph: &notion.Paragraph{
+				Text: []*notion.RichTextObject{
+					{Type: "text", Text: &notion.Text{Content: "Good"}},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %s %v\n", block.ID, block)
 
 	return nil
 }

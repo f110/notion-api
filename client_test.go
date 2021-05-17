@@ -838,3 +838,40 @@ func TestPatchPage(t *testing.T) {
 		assert.Equal(t, "Update property", page.Properties["Test1"].RichText[0].Text.Content)
 	}
 }
+
+func TestPatchBlockChildren(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/patch-block-children.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodPatch,
+		regexp.MustCompile(`/v1/blocks/[0-9a-z-]{36}/children$`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	block, err := client.AppendBlock(context.Background(), "9585d9b5-ad82-4221-9f82-a3a4767d5b92", []*Block{
+		{
+			Meta: &Meta{
+				Object: "block",
+			},
+			Type: "paragraph",
+			Paragraph: &Paragraph{
+				Text: []*RichTextObject{
+					{Type: "text", Text: &Text{Content: "Good"}},
+				},
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, "80434f64-2d08-414d-83b0-5fca519794bd", block.ID)
+	assert.True(t, block.HasChildren)
+}

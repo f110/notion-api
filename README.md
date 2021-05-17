@@ -40,7 +40,7 @@ And example code exists under [example directory](./example)
 * [x] [Create a page](https://developers.notion.com/reference/post-page)
 * [x] [Update page properties](https://developers.notion.com/reference/patch-page)
 * [x] [Retrieve block children](https://developers.notion.com/reference/get-block-children)
-* [ ] [Append block children](https://developers.notion.com/reference/patch-block-children)
+* [x] [Append block children](https://developers.notion.com/reference/patch-block-children)
 
 # Author
 
