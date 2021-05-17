@@ -1,6 +1,8 @@
 notion-api
 ---
 
+[![Go Reference](https://pkg.go.dev/badge/go.f110.dev/notion-api.svg)](https://pkg.go.dev/go.f110.dev/notion-api)
+
 API client for Notion written by Go.
 
 Currently under active development. All APIs will be changed possibly.
@@ -41,6 +43,10 @@ And example code exists under [example directory](./example)
 * [x] [Update page properties](https://developers.notion.com/reference/patch-page)
 * [x] [Retrieve block children](https://developers.notion.com/reference/get-block-children)
 * [x] [Append block children](https://developers.notion.com/reference/patch-block-children)
+
+# Implemented version
+
+Implemented [Notion API version](https://developers.notion.com/reference/versioning) is **2021-05-13** .
 
 # Author
 
