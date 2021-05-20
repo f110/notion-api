@@ -875,3 +875,42 @@ func TestPatchBlockChildren(t *testing.T) {
 	assert.Equal(t, "80434f64-2d08-414d-83b0-5fca519794bd", block.ID)
 	assert.True(t, block.HasChildren)
 }
+
+func TestPostSearch(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/post-search.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodPost,
+		regexp.MustCompile(`/v1/search$`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	results, err := client.Search(context.Background(), "q", nil)
+	require.NoError(t, err)
+
+	require.Len(t, results, 2)
+	if assert.IsType(t, &Page{}, results[0]) {
+		page := results[0].(*Page)
+		assert.Equal(t, "page", page.Object)
+		assert.Equal(t, "04df63cf-8140-481a-81e0-8f0af77131b2", page.ID)
+		if assert.NotNil(t, page.Parent) {
+			assert.Equal(t, "ba8e1263-af24-4cd0-87e0-6e2933303b60", page.Parent.DatabaseID)
+		}
+		assert.Len(t, page.Properties, 13)
+	}
+	if assert.IsType(t, &Database{}, results[1]) {
+		db := results[1].(*Database)
+		assert.Equal(t, "database", db.Object)
+		assert.Equal(t, "ba8e1263-af24-4cd0-87e0-6e2933303b60", db.ID)
+		assert.Len(t, db.Properties, 18)
+	}
+}

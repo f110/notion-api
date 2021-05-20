@@ -43,6 +43,7 @@ And example code exists under [example directory](./example)
 * [x] [Update page properties](https://developers.notion.com/reference/patch-page)
 * [x] [Retrieve block children](https://developers.notion.com/reference/get-block-children)
 * [x] [Append block children](https://developers.notion.com/reference/patch-block-children)
+* [x] [Search](https://developers.notion.com/reference/post-search)
 
 # Implemented version
 

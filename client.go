@@ -430,6 +430,87 @@ func (c *Client) AppendBlock(ctx context.Context, blockID string, children []*Bl
 	return obj, nil
 }
 
+func (c *Client) Search(ctx context.Context, query string, sort *Sort) ([]Object, error) {
+	body := struct {
+		Query       string `json:"query"`
+		Sort        *Sort  `json:"sort,omitempty"`
+		StartCursor string `json:"start_cursor,omitempty"`
+		PageSize    int    `json:"page_size"`
+	}{
+		Query:    query,
+		Sort:     sort,
+		PageSize: 100,
+	}
+
+	objs := make([]Object, 0)
+	tmp := make([]Object, 0, 100)
+	buf := new(bytes.Buffer)
+	for {
+		if err := json.NewEncoder(buf).Encode(body); err != nil {
+			return nil, err
+		}
+
+		req, err := c.newRequest(ctx, http.MethodPost, "/search", nil, buf)
+		if err != nil {
+			return nil, err
+		}
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+
+		switch res.StatusCode {
+		case http.StatusOK:
+		case http.StatusBadRequest:
+			res.Body.Close()
+			return nil, ErrBadRequest
+		case http.StatusTooManyRequests:
+			res.Body.Close()
+			return nil, ErrLimitExceeded
+		}
+
+		obj := &SearchResult{}
+		if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+			res.Body.Close()
+			return nil, fmt.Errorf("failed parse a response: %v", err)
+		}
+		res.Body.Close()
+
+		meta := &Meta{}
+		for _, v := range obj.Results {
+			if err := json.Unmarshal(*v, meta); err != nil {
+				return nil, err
+			}
+
+			switch meta.Object {
+			case "database":
+				db := &Database{}
+				if err := json.Unmarshal(*v, db); err != nil {
+					return nil, err
+				}
+				tmp = append(tmp, db)
+			case "page":
+				page := &Page{}
+				if err := json.Unmarshal(*v, page); err != nil {
+					return nil, err
+				}
+				tmp = append(tmp, page)
+			default:
+				return nil, fmt.Errorf("notion: unknown object type: %s", meta.Object)
+			}
+		}
+		objs = append(objs, tmp...)
+		tmp = tmp[:0]
+
+		if !obj.HasMore {
+			break
+		}
+		body.StartCursor = obj.NextCursor
+	}
+
+	return objs, nil
+}
+
 func (c *Client) newRequest(ctx context.Context, method string, apiPath string, params *url.Values, body io.Reader) (*http.Request, error) {
 	u := &url.URL{}
 	*u = *c.baseURL

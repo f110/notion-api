@@ -63,6 +63,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "search":
+		if err := search(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "%s is not action\n", os.Args[1])
 		os.Exit(1)
@@ -353,6 +358,37 @@ func appendBlocks(args []string) error {
 		return err
 	}
 	fmt.Printf("ID: %s %v\n", block.ID, block)
+
+	return nil
+}
+
+func search(args []string) error {
+	token := ""
+	query := ""
+	fs := flag.NewFlagSet("search", flag.ContinueOnError)
+	fs.StringVar(&token, "token", "", "API Token")
+	fs.StringVar(&query, "query", "", "Search query")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	results, err := client.Search(context.Background(), query, nil)
+	if err != nil {
+		return err
+	}
+	for _, v := range results {
+		switch obj := v.(type) {
+		case *notion.Database:
+			fmt.Printf("Database ID: %s %+v\n", obj.ID, obj)
+		case *notion.Page:
+			fmt.Printf("Page ID: %s %+v\n", obj.ID, obj)
+		}
+	}
 
 	return nil
 }

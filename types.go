@@ -2,8 +2,11 @@ package notion
 
 import (
 	"bytes"
+	"encoding/json"
 	"time"
 )
+
+type Object interface{}
 
 type Meta struct {
 	// Type of object
@@ -425,4 +428,9 @@ type ToDo struct {
 
 type ChildPage struct {
 	Title string `json:"title"`
+}
+
+type SearchResult struct {
+	*ListMeta
+	Results []*json.RawMessage `json:"results"`
 }
