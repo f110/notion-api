@@ -231,6 +231,7 @@ type Page struct {
 	Parent         *PageParent              `json:"parent,omitempty"`
 	Properties     map[string]*PropertyData `json:"properties"`
 	Children       []*Block                 `json:"children,omitempty"`
+	URL            string                   `json:"url,omitempty"`
 }
 
 type PageList struct {

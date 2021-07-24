@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"go.f110.dev/notion-api"
 	"golang.org/x/oauth2"
+
+	"go.f110.dev/notion-api"
 )
 
 func main() {
