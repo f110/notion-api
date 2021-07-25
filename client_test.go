@@ -534,6 +534,7 @@ func TestGetPage(t *testing.T) {
 		assert.Equal(t, "ba8e1263-af24-4cd0-87e0-6e2933303b60", page.Parent.DatabaseID)
 	}
 	assert.False(t, page.Archived)
+	assert.Equal(t, "https://www.notion.so/Foo-1649321550a841b88b430a0c014a7910", page.URL)
 	assert.Len(t, page.Properties, 19)
 
 	require.NotNil(t, page.Properties["Name"])
