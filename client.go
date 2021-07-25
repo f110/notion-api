@@ -511,6 +511,39 @@ func (c *Client) Search(ctx context.Context, query string, sort *Sort) ([]Object
 	return objs, nil
 }
 
+// CreateDatabase creates a database
+// ref: https://developers.notion.com/reference/create-a-database
+func (c *Client) CreateDatabase(ctx context.Context, db *Database) (*Database, error) {
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(db); err != nil {
+		return nil, fmt.Errorf("notion: failed to encode request body: %v", err)
+	}
+	req, err := c.newRequest(ctx, http.MethodPost, "/databases", nil, buf)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusNotFound:
+		return nil, ErrPageNotFound
+	}
+
+	obj := &Database{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("notion: failed parse a response: %v", err)
+	}
+
+	return obj, nil
+}
+
 func (c *Client) newRequest(ctx context.Context, method string, apiPath string, params *url.Values, body io.Reader) (*http.Request, error) {
 	u := &url.URL{}
 	*u = *c.baseURL

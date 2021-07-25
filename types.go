@@ -100,7 +100,7 @@ type UserList struct {
 }
 
 type RichTextObject struct {
-	Type        string          `json:"type"`
+	Type        string          `json:"type,omitempty"`
 	PlainText   string          `json:"plain_text,omitempty"`
 	Href        string          `json:"href,omitempty"`
 	Annotations *TextAnnotation `json:"annotations,omitempty"`
@@ -144,8 +144,9 @@ type Link struct {
 type Database struct {
 	*Meta
 
-	CreatedTime    Time                         `json:"created_time"`
-	LastEditedTime Time                         `json:"last_edited_time"`
+	Parent         *PageParent                  `json:"parent"`
+	CreatedTime    Time                         `json:"created_time,omitempty"`
+	LastEditedTime Time                         `json:"last_edited_time,omitempty"`
 	Title          []*RichTextObject            `json:"title"`
 	Properties     map[string]*PropertyMetadata `json:"properties"`
 }
@@ -157,7 +158,7 @@ type DatabaseList struct {
 
 type PropertyMetadata struct {
 	ID   string `json:"id,omitempty"`
-	Type string `json:"type"`
+	Type string `json:"type,omitempty"`
 
 	Title          *RichTextObject      `json:"title,omitempty"`
 	RichText       *struct{}            `json:"rich_text,omitempty"`

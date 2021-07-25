@@ -915,3 +915,40 @@ func TestPostSearch(t *testing.T) {
 		assert.Len(t, db.Properties, 18)
 	}
 }
+
+func TestCreateDatabase(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("testdata/post-databases.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodPost,
+		regexp.MustCompile(`/v1/databases$`),
+		httpmock.NewStringResponder(http.StatusOK, string(res)),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	db, err := client.CreateDatabase(context.Background(), &Database{})
+	require.NoError(t, err)
+
+	assert.Equal(t, "181a22c0-66af-439a-8265-c2473a59fee9", db.ID)
+	assert.Equal(t, "database", db.Object)
+	assert.Equal(t, int64(1627192200), db.CreatedTime.Unix())
+	assert.Equal(t, int64(1627192200), db.LastEditedTime.Unix())
+
+	if assert.Len(t, db.Title, 1) {
+		assert.Equal(t, "text", db.Title[0].Type)
+		if assert.NotNil(t, db.Title[0].Text) {
+			assert.Equal(t, "Create database", db.Title[0].Text.Content)
+		}
+		assert.Equal(t, "Create database", db.Title[0].PlainText)
+	}
+
+	assert.Len(t, db.Properties, 2)
+
+	require.NotNil(t, db.Properties["Name"])
+	require.NotNil(t, db.Properties["Test1"])
+}

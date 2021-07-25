@@ -69,6 +69,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "create-database":
+		if err := createDatabase(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "%s is not action\n", os.Args[1])
 		os.Exit(1)
@@ -390,6 +395,38 @@ func search(args []string) error {
 			fmt.Printf("Page ID: %s %+v\n", obj.ID, obj)
 		}
 	}
+
+	return nil
+}
+
+func createDatabase(args []string) error {
+	token := ""
+	pageID := ""
+	fs := flag.NewFlagSet("create-database", flag.ContinueOnError)
+	fs.StringVar(&token, "token", "", "API Token")
+	fs.StringVar(&pageID, "page-id", "", "Parent page identifier")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	parent, err := client.GetPage(context.Background(), pageID)
+	if err != nil {
+		return err
+	}
+
+	newDatabase := notion.NewDatabase(parent, "Create database")
+	newDatabase.SetProperty("Name", &notion.PropertyMetadata{Title: &notion.RichTextObject{}})
+	newDatabase.SetProperty("Test1", &notion.PropertyMetadata{RichText: &struct{}{}})
+	database, err := client.CreateDatabase(context.Background(), newDatabase)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %s\n", database.ID)
 
 	return nil
 }

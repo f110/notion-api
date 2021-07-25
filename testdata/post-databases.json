@@ -1,0 +1,43 @@
+{
+  "object": "database",
+  "id": "181a22c0-66af-439a-8265-c2473a59fee9",
+  "created_time": "2021-07-25T05:50:00.000Z",
+  "last_edited_time": "2021-07-25T05:50:00.000Z",
+  "title": [
+    {
+      "type": "text",
+      "text": {
+        "content": "Create database",
+        "link": null
+      },
+      "annotations": {
+        "bold": false,
+        "italic": false,
+        "strikethrough": false,
+        "underline": false,
+        "code": false,
+        "color": "default"
+      },
+      "plain_text": "Create database",
+      "href": null
+    }
+  ],
+  "properties": {
+    "Test1": {
+      "id": "NPUm",
+      "name": "Test1",
+      "type": "rich_text",
+      "rich_text": {}
+    },
+    "Name": {
+      "id": "title",
+      "name": "Name",
+      "type": "title",
+      "title": {}
+    }
+  },
+  "parent": {
+    "type": "page_id",
+    "page_id": "80434f64-2d08-414d-83b0-5fca519794bd"
+  }
+}
