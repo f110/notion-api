@@ -28,6 +28,18 @@
       "type": "last_edited_time",
       "last_edited_time": {}
     },
+    "Test14": {
+      "id": "D<qH",
+      "name": "Test14",
+      "type": "rollup",
+      "rollup": {
+        "rollup_property_name": "Name",
+        "relation_property_name": "Test13",
+        "rollup_property_id": "title",
+        "relation_property_id": "MqLD",
+        "function": "show_original"
+      }
+    },
     "Test6": {
       "id": "JdkP",
       "type": "people",

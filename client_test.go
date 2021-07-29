@@ -233,7 +233,7 @@ func TestGetDatabase(t *testing.T) {
 			assert.Equal(t, "For development", db.Title[0].PlainText)
 		}
 	}
-	assert.Len(t, db.Properties, 17)
+	assert.Len(t, db.Properties, 18)
 
 	require.NotNil(t, db.Properties["Name"])
 	require.NotNil(t, db.Properties["Tags"])
@@ -252,8 +252,7 @@ func TestGetDatabase(t *testing.T) {
 	//require.NotNil(t, db.Properties["Test12"])
 	// TODO: This is probably bug of Notion.
 	//require.NotNil(t, db.Properties["Test13"])
-	// TODO: This is probably bug of Notion.
-	//require.NotNil(t, db.Properties["Test14"])
+	require.NotNil(t, db.Properties["Test14"])
 	require.NotNil(t, db.Properties["Test15"])
 	require.NotNil(t, db.Properties["Test16"])
 	require.NotNil(t, db.Properties["Test17"])
@@ -314,6 +313,15 @@ func TestGetDatabase(t *testing.T) {
 
 	assert.Equal(t, "created_time", db.Properties["Test15"].Type)
 	assert.NotNil(t, db.Properties["Test15"].CreatedTime)
+
+	assert.Equal(t, "rollup", db.Properties["Test14"].Type)
+	if assert.NotNil(t, db.Properties["Test14"].Rollup) {
+		assert.Equal(t, "Name", db.Properties["Test14"].Rollup.Name)
+		assert.Equal(t, "Test13", db.Properties["Test14"].Rollup.Relation)
+		assert.Equal(t, "title", db.Properties["Test14"].Rollup.RollupPropertyID)
+		assert.Equal(t, "MqLD", db.Properties["Test14"].Rollup.RelationPropertyID)
+		assert.Equal(t, RollupFunctionShowOriginal, db.Properties["Test14"].Rollup.Function)
+	}
 
 	assert.Equal(t, "created_by", db.Properties["Test16"].Type)
 	assert.NotNil(t, db.Properties["Test16"].CreatedBy)

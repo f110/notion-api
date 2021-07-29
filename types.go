@@ -169,7 +169,7 @@ type PropertyMetadata struct {
 	Formula        *struct{}            `json:"formula,omitempty"`
 	Relation       *struct{}            `json:"relation,omitempty"`
 	Checkbox       *struct{}            `json:"checkbox,omitempty"`
-	Rollup         *struct{}            `json:"rollup,omitempty"`
+	Rollup         *RollupProperty      `json:"rollup,omitempty"`
 	People         *struct{}            `json:"people,omitempty"`
 	Files          *struct{}            `json:"files,omitempty"`
 	URL            *struct{}            `json:"url,omitempty"`
@@ -213,7 +213,34 @@ type FormulaProperty struct {
 	Date    *DateProperty `json:"date,omitempty"`
 }
 
+type RollupFunction string
+
+const (
+	RollupFunctionCountAll          RollupFunction = "count_all"
+	RollupFunctionCountValues       RollupFunction = "count_values"
+	RollupFunctionCountUniqueValues RollupFunction = "count_unique_values"
+	RollupFunctionCountEmpty        RollupFunction = "count_empty"
+	RollupFunctionCountNotEmpty     RollupFunction = "count_not_empty"
+	RollupFunctionPercentEmpty      RollupFunction = "percent_empty"
+	RollupFunctionPercentNotEmpty   RollupFunction = "percent_not_empty"
+	RollupFunctionSum               RollupFunction = "sum"
+	RollupFunctionAverage           RollupFunction = "average"
+	RollupFunctionMedian            RollupFunction = "median"
+	RollupFunctionMin               RollupFunction = "min"
+	RollupFunctionMax               RollupFunction = "max"
+	RollupFunctionRange             RollupFunction = "range"
+	RollupFunctionShowOriginal      RollupFunction = "show_original"
+)
+
 type RollupProperty struct {
+	Name               string         `json:"rollup_property_name"`
+	Relation           string         `json:"relation_property_name"`
+	RollupPropertyID   string         `json:"rollup_property_id"`
+	RelationPropertyID string         `json:"relation_property_id"`
+	Function           RollupFunction `json:"function"`
+}
+
+type Rollup struct {
 	Type string `json:"type"`
 
 	Number *NumberProperty     `json:"number,omitempty"`
@@ -268,7 +295,7 @@ type PropertyData struct {
 	PhoneNumber    string            `json:"phone_number,omitempty"`
 	Formula        *FormulaProperty  `json:"formula,omitempty"`
 	Relation       []*Meta           `json:"relation,omitempty"`
-	RollupProperty *RollupProperty   `json:"rollup_property,omitempty"`
+	RollupProperty *Rollup           `json:"rollup,omitempty"`
 	CreatedTime    *Time             `json:"created_time,omitempty"`
 	CreatedBy      *User             `json:"created_by,omitempty"`
 	LastEditedTime *Time             `json:"last_edited_time,omitempty"`
