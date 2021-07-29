@@ -15,6 +15,37 @@
       "type": "last_edited_time",
       "last_edited_time": "2021-05-15T11:44:00.000Z"
     },
+    "Test14": {
+      "id": "D<qH",
+      "type": "rollup",
+      "rollup": {
+        "type": "array",
+        "array": [
+          {
+            "type": "title",
+            "title": [
+              {
+                "type": "text",
+                "text": {
+                  "content": "FooBaz",
+                  "link": null
+                },
+                "annotations": {
+                  "bold": false,
+                  "italic": false,
+                  "strikethrough": false,
+                  "underline": false,
+                  "code": false,
+                  "color": "default"
+                },
+                "plain_text": "FooBaz",
+                "href": null
+              }
+            ]
+          }
+        ]
+      }
+    },
     "Test6": {
       "id": "JdkP",
       "type": "people",

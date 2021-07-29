@@ -243,9 +243,9 @@ type RollupProperty struct {
 type Rollup struct {
 	Type string `json:"type"`
 
-	Number *NumberProperty     `json:"number,omitempty"`
-	Date   *DateProperty       `json:"date,omitempty"`
-	Array  []*PropertyMetadata `json:"array,omitempty"`
+	Number *NumberProperty `json:"number,omitempty"`
+	Date   *DateProperty   `json:"date,omitempty"`
+	Array  []*PropertyData `json:"array,omitempty"`
 }
 
 // Page is a page object.

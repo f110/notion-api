@@ -107,7 +107,7 @@ func TestListDatabases(t *testing.T) {
 			assert.Equal(t, "For development", db.Title[0].PlainText)
 		}
 	}
-	assert.Len(t, db.Properties, 17)
+	assert.Len(t, db.Properties, 18)
 
 	require.NotNil(t, db.Properties["Name"])
 	require.NotNil(t, db.Properties["Tags"])
@@ -126,8 +126,7 @@ func TestListDatabases(t *testing.T) {
 	//require.NotNil(t, db.Properties["Test12"])
 	// TODO: This is probably bug of Notion.
 	//require.NotNil(t, db.Properties["Test13"])
-	// TODO: This is probably bug of Notion.
-	//require.NotNil(t, db.Properties["Test14"])
+	require.NotNil(t, db.Properties["Test14"])
 	require.NotNil(t, db.Properties["Test15"])
 	require.NotNil(t, db.Properties["Test16"])
 	require.NotNil(t, db.Properties["Test17"])
@@ -543,7 +542,7 @@ func TestGetPage(t *testing.T) {
 	}
 	assert.False(t, page.Archived)
 	assert.Equal(t, "https://www.notion.so/Foo-1649321550a841b88b430a0c014a7910", page.URL)
-	assert.Len(t, page.Properties, 19)
+	assert.Len(t, page.Properties, 20)
 
 	require.NotNil(t, page.Properties["Name"])
 	require.NotNil(t, page.Properties["Tags"])
@@ -560,8 +559,7 @@ func TestGetPage(t *testing.T) {
 	require.NotNil(t, page.Properties["Test11"])
 	require.NotNil(t, page.Properties["Test12"])
 	require.NotNil(t, page.Properties["Test13"])
-	// TODO: This is probably bug of Notion.
-	//require.NotNil(t, page.Properties["Test14"])
+	require.NotNil(t, page.Properties["Test14"])
 	require.NotNil(t, page.Properties["Test15"])
 	require.NotNil(t, page.Properties["Test16"])
 	require.NotNil(t, page.Properties["Test17"])
