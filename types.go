@@ -159,6 +159,7 @@ type DatabaseList struct {
 type PropertyMetadata struct {
 	ID   string `json:"id,omitempty"`
 	Type string `json:"type,omitempty"`
+	Name string `json:"name,omitempty"`
 
 	Title          *RichTextObject      `json:"title,omitempty"`
 	RichText       *struct{}            `json:"rich_text,omitempty"`

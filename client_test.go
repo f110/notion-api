@@ -219,10 +219,10 @@ func TestGetDatabase(t *testing.T) {
 	db, err := client.GetDatabase(context.Background(), "a4f18e20-365d-4fe1-91e8-080381f877d5")
 	require.NoError(t, err)
 
-	assert.Equal(t, "a4f18e20-365d-4fe1-91e8-080381f877d5", db.ID)
+	assert.Equal(t, "ba8e1263-af24-4cd0-87e0-6e2933303b60", db.ID)
 	assert.Equal(t, "database", db.Object)
-	assert.Equal(t, int64(1621068182), db.CreatedTime.Unix())
-	assert.Equal(t, int64(1621070940), db.LastEditedTime.Unix())
+	assert.Equal(t, int64(1621068180), db.CreatedTime.Unix())
+	assert.Equal(t, int64(1621079100), db.LastEditedTime.Unix())
 
 	if assert.Len(t, db.Title, 1) {
 		assert.Equal(t, "text", db.Title[0].Type)
@@ -232,7 +232,7 @@ func TestGetDatabase(t *testing.T) {
 			assert.Equal(t, "For development", db.Title[0].PlainText)
 		}
 	}
-	assert.Len(t, db.Properties, 18)
+	assert.Len(t, db.Properties, 20)
 
 	require.NotNil(t, db.Properties["Name"])
 	require.NotNil(t, db.Properties["Tags"])
@@ -247,10 +247,8 @@ func TestGetDatabase(t *testing.T) {
 	require.NotNil(t, db.Properties["Test9"])
 	require.NotNil(t, db.Properties["Test10"])
 	require.NotNil(t, db.Properties["Test11"])
-	// TODO: This is probably bug of Notion.
-	//require.NotNil(t, db.Properties["Test12"])
-	// TODO: This is probably bug of Notion.
-	//require.NotNil(t, db.Properties["Test13"])
+	require.NotNil(t, db.Properties["Test12"])
+	require.NotNil(t, db.Properties["Test13"])
 	require.NotNil(t, db.Properties["Test14"])
 	require.NotNil(t, db.Properties["Test15"])
 	require.NotNil(t, db.Properties["Test16"])
@@ -259,17 +257,21 @@ func TestGetDatabase(t *testing.T) {
 
 	assert.Equal(t, "title", db.Properties["Name"].Type)
 	assert.NotNil(t, db.Properties["Name"].Title)
+	assert.Equal(t, "Name", db.Properties["Name"].Name)
 
 	assert.Equal(t, "multi_select", db.Properties["Tags"].Type)
 	assert.NotNil(t, db.Properties["Tags"].MultiSelect)
+	assert.Equal(t, "Tags", db.Properties["Tags"].Name)
 
 	assert.Equal(t, "rich_text", db.Properties["Test1"].Type)
 	assert.NotNil(t, db.Properties["Test1"].RichText)
+	assert.Equal(t, "Test1", db.Properties["Test1"].Name)
 
 	assert.Equal(t, "number", db.Properties["Test2"].Type)
 	if assert.NotNil(t, db.Properties["Test2"].Number) {
 		assert.Equal(t, "number", db.Properties["Test2"].Number.Format)
 	}
+	assert.Equal(t, "Test2", db.Properties["Test2"].Name)
 
 	assert.Equal(t, "select", db.Properties["Test3"].Type)
 	if assert.NotNil(t, db.Properties["Test3"].Select) {
@@ -279,6 +281,7 @@ func TestGetDatabase(t *testing.T) {
 			assert.Equal(t, "gray", db.Properties["Test3"].Select.Options[0].Color)
 		}
 	}
+	assert.Equal(t, "Test3", db.Properties["Test3"].Name)
 
 	assert.Equal(t, "multi_select", db.Properties["Test4"].Type)
 	if assert.NotNil(t, db.Properties["Test4"].MultiSelect) {
@@ -288,30 +291,39 @@ func TestGetDatabase(t *testing.T) {
 			assert.Equal(t, "red", db.Properties["Test4"].MultiSelect.Options[0].Color)
 		}
 	}
+	assert.Equal(t, "Test4", db.Properties["Test4"].Name)
 
 	assert.Equal(t, "date", db.Properties["Test5"].Type)
 	assert.NotNil(t, db.Properties["Test5"].Date)
+	assert.Equal(t, "Test5", db.Properties["Test5"].Name)
 
 	assert.Equal(t, "people", db.Properties["Test6"].Type)
 	assert.NotNil(t, db.Properties["Test6"].People)
+	assert.Equal(t, "Test6", db.Properties["Test6"].Name)
 
 	assert.Equal(t, "files", db.Properties["Test7"].Type)
 	assert.NotNil(t, db.Properties["Test7"].Files)
+	assert.Equal(t, "Test7", db.Properties["Test7"].Name)
 
 	assert.Equal(t, "checkbox", db.Properties["Test8"].Type)
 	assert.NotNil(t, db.Properties["Test8"].Checkbox)
+	assert.Equal(t, "Test8", db.Properties["Test8"].Name)
 
 	assert.Equal(t, "url", db.Properties["Test9"].Type)
 	assert.NotNil(t, db.Properties["Test9"].URL)
+	assert.Equal(t, "Test9", db.Properties["Test9"].Name)
 
 	assert.Equal(t, "email", db.Properties["Test10"].Type)
 	assert.NotNil(t, db.Properties["Test10"].Email)
+	assert.Equal(t, "Test10", db.Properties["Test10"].Name)
 
 	assert.Equal(t, "phone_number", db.Properties["Test11"].Type)
 	assert.NotNil(t, db.Properties["Test11"].PhoneNumber)
+	assert.Equal(t, "Test11", db.Properties["Test11"].Name)
 
 	assert.Equal(t, "created_time", db.Properties["Test15"].Type)
 	assert.NotNil(t, db.Properties["Test15"].CreatedTime)
+	assert.Equal(t, "Test15", db.Properties["Test15"].Name)
 
 	assert.Equal(t, "rollup", db.Properties["Test14"].Type)
 	if assert.NotNil(t, db.Properties["Test14"].Rollup) {
@@ -321,15 +333,19 @@ func TestGetDatabase(t *testing.T) {
 		assert.Equal(t, "MqLD", db.Properties["Test14"].Rollup.RelationPropertyID)
 		assert.Equal(t, RollupFunctionShowOriginal, db.Properties["Test14"].Rollup.Function)
 	}
+	assert.Equal(t, "Test14", db.Properties["Test14"].Name)
 
 	assert.Equal(t, "created_by", db.Properties["Test16"].Type)
 	assert.NotNil(t, db.Properties["Test16"].CreatedBy)
+	assert.Equal(t, "Test16", db.Properties["Test16"].Name)
 
 	assert.Equal(t, "last_edited_time", db.Properties["Test17"].Type)
 	assert.NotNil(t, db.Properties["Test17"].LastEditedTime)
+	assert.Equal(t, "Test17", db.Properties["Test17"].Name)
 
 	assert.Equal(t, "last_edited_by", db.Properties["Test18"].Type)
 	assert.NotNil(t, db.Properties["Test18"].LastEditedBy)
+	assert.Equal(t, "Test18", db.Properties["Test18"].Name)
 }
 
 func TestGetPages(t *testing.T) {
