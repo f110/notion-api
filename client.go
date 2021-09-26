@@ -25,6 +25,7 @@ var (
 	ErrUserNotFound     = errors.New("notion: user not found")
 	ErrDatabaseNotFound = errors.New("notion: database not found")
 	ErrPageNotFound     = errors.New("notion: page not found")
+	ErrBlockNotFound    = errors.New("notion: block not found")
 )
 
 type Client struct {
@@ -317,6 +318,35 @@ func (c *Client) GetBlocks(ctx context.Context, pageID string) ([]*Block, error)
 	}
 
 	return blocks, nil
+}
+
+// GetBlock can get a block.
+// ref: https://developers.notion.com/reference/retrieve-a-block
+func (c *Client) GetBlock(ctx context.Context, blockID string) (*Block, error) {
+	req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/blocks/%s", blockID), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return nil, ErrBlockNotFound
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	}
+
+	obj := &Block{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("failed parse a response: %v", err)
+	}
+
+	return obj, nil
 }
 
 // CreatePage can create a page.

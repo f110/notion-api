@@ -705,6 +705,43 @@ func TestGetPage(t *testing.T) {
 	assert.Equal(t, "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7", page.Properties["Test18"].LastEditedBy.ID)
 }
 
+func TestGetBlock(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/get-block.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodGet,
+		regexp.MustCompile(`/v1/blocks/[a-z0-9-]{36}`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	block, err := client.GetBlock(context.Background(), "6fbac55c-9e74-4489-b386-0c88d5aa54dd")
+	require.NoError(t, err)
+
+	assert.Equal(t, "block", block.Object)
+	assert.Equal(t, "6fbac55c-9e74-4489-b386-0c88d5aa54dd", block.ID)
+	assert.Equal(t, int64(1621500000), block.CreatedTime.Unix())
+	assert.Equal(t, int64(1621500000), block.LastEditedTime.Unix())
+	assert.False(t, block.HasChildren)
+	assert.False(t, block.Archived)
+	assert.Equal(t, "paragraph", block.Type)
+	if assert.NotNil(t, block.Paragraph) {
+		if assert.Len(t, block.Paragraph.Text, 1) {
+			assert.Equal(t, "text", block.Paragraph.Text[0].Type)
+			assert.Equal(t, "development", block.Paragraph.Text[0].Text.Content)
+			assert.Equal(t, "development", block.Paragraph.Text[0].PlainText)
+		}
+	}
+}
+
 func TestGetBlocks(t *testing.T) {
 	t.Parallel()
 

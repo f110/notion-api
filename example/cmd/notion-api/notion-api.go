@@ -49,6 +49,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "get-block":
+		if err := getBlock(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	case "get-blocks":
 		if err := getBlocks(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -225,6 +230,31 @@ func getPages(args []string) error {
 	for _, page := range pages {
 		fmt.Printf("ID: %s %+v\n", page.ID, page)
 	}
+
+	return nil
+}
+
+func getBlock(args []string) error {
+	blockID := ""
+	token := ""
+	fs := flag.NewFlagSet("get-block", flag.ContinueOnError)
+	fs.StringVar(&blockID, "block-id", "", "Block identifier")
+	fs.StringVar(&token, "token", "", "API Token")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	block, err := client.GetBlock(context.Background(), blockID)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("ID: %s %+v\n", blockID, block)
 
 	return nil
 }

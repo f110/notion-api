@@ -423,6 +423,7 @@ type Block struct {
 	CreatedTime    Time   `json:"created_time"`
 	LastEditedTime Time   `json:"last_edited_time"`
 	HasChildren    bool   `json:"has_children"`
+	Archived       bool   `json:"archived"`
 	Type           string `json:"type"`
 
 	Paragraph        *Paragraph `json:"paragraph,omitempty"`
