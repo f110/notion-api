@@ -39,6 +39,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "get-page":
+		if err := getPage(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	case "get-pages":
 		if err := getPages(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -170,6 +175,30 @@ func getDatabase(args []string) error {
 		return err
 	}
 	fmt.Printf("%+v\n", database)
+
+	return nil
+}
+
+func getPage(args []string) error {
+	pageID := ""
+	token := ""
+	fs := flag.NewFlagSet("get-page", flag.ContinueOnError)
+	fs.StringVar(&pageID, "page-id", "", "Page identifier")
+	fs.StringVar(&token, "token", "", "API Token")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	page, err := client.GetPage(context.Background(), pageID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %s %+v\n", pageID, page)
 
 	return nil
 }
