@@ -349,6 +349,39 @@ func (c *Client) GetBlock(ctx context.Context, blockID string) (*Block, error) {
 	return obj, nil
 }
 
+func (c *Client) UpdateBlock(ctx context.Context, block *Block) (*Block, error) {
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(block); err != nil {
+		return nil, fmt.Errorf("notion: failed to encode request body: %v", err)
+	}
+	req, err := c.newRequest(ctx, http.MethodPatch, fmt.Sprintf("/blocks/%s", block.ID), nil, buf)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return nil, ErrBlockNotFound
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusTooManyRequests:
+		return nil, ErrLimitExceeded
+	}
+
+	obj := &Block{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("failed to parse a reponse: %v", err)
+	}
+
+	return obj, nil
+}
+
 // CreatePage can create a page.
 // ref: https://developers.notion.com/reference/post-page
 func (c *Client) CreatePage(ctx context.Context, page *Page) (*Page, error) {

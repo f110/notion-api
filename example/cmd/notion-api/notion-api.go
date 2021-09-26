@@ -59,6 +59,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "update-block":
+		if err := updateBlock(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	case "create-page":
 		if err := createPage(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -281,6 +286,37 @@ func getBlocks(args []string) error {
 	for _, block := range blocks {
 		fmt.Printf("ID: %s %+v\n", block.ID, block)
 	}
+
+	return nil
+}
+
+func updateBlock(args []string) error {
+	blockID := ""
+	token := ""
+	fs := flag.NewFlagSet("update-block", flag.ContinueOnError)
+	fs.StringVar(&blockID, "block-id", "", "Block identifier")
+	fs.StringVar(&token, "token", "", "API Token")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	block, err := client.GetBlock(context.Background(), blockID)
+	if err != nil {
+		return err
+	}
+
+	block.Paragraph.Text[0].Text = &notion.Text{Content: "Updated"}
+
+	block, err = client.UpdateBlock(context.Background(), block)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("ID: %s %+v\n", block.ID, block)
 
 	return nil
 }

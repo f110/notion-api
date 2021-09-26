@@ -831,6 +831,31 @@ func TestGetBlocks(t *testing.T) {
 	}
 }
 
+func TestUpdateBlock(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/update-block.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodPatch,
+		regexp.MustCompile(`/v1/blocks/[a-z0-9-]{36}`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	block, err := client.UpdateBlock(context.Background(), &Block{Meta: &Meta{ID: "cdfb0555-29e4-4bad-baaa-240a0097c77d"}})
+	require.NoError(t, err)
+
+	assert.Equal(t, "block", block.Object)
+	assert.Equal(t, "cdfb0555-29e4-4bad-baaa-240a0097c77d", block.ID)
+}
+
 func TestCreatePage(t *testing.T) {
 	t.Parallel()
 
