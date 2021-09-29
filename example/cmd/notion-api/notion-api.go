@@ -442,7 +442,7 @@ func appendBlocks(args []string) error {
 		return err
 	}
 
-	block, err := client.AppendBlock(context.Background(), pageID, []*notion.Block{
+	blocks, err := client.AppendBlock(context.Background(), pageID, []*notion.Block{
 		{
 			Meta: &notion.Meta{
 				Object: "block",
@@ -458,7 +458,9 @@ func appendBlocks(args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("ID: %s %v\n", block.ID, block)
+	for _, block := range blocks {
+		fmt.Printf("ID: %s %+v\n", block.ID, block)
+	}
 
 	return nil
 }

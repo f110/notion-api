@@ -14,9 +14,9 @@ import (
 
 const (
 	BaseURL   = "https://api.notion.com/v1"
-	UserAgent = "go.f110.dev/notion-api v0.1"
+	UserAgent = "go.f110.dev/notion-api v2"
 
-	notionVersion = "2021-05-13"
+	notionVersion = "2021-08-16"
 )
 
 var (
@@ -458,7 +458,7 @@ func (c *Client) UpdateProperties(ctx context.Context, pageID string, properties
 
 // AppendBlock is appending new children block.
 // ref: https://developers.notion.com/reference/patch-block-children
-func (c *Client) AppendBlock(ctx context.Context, blockID string, children []*Block) (*Block, error) {
+func (c *Client) AppendBlock(ctx context.Context, blockID string, children []*Block) ([]*Block, error) {
 	body := struct {
 		Children []*Block `json:"children"`
 	}{
@@ -487,12 +487,12 @@ func (c *Client) AppendBlock(ctx context.Context, blockID string, children []*Bl
 		return nil, ErrLimitExceeded
 	}
 
-	obj := &Block{}
+	obj := &BlockList{}
 	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
 		return nil, fmt.Errorf("failed parse a response: %v", err)
 	}
 
-	return obj, nil
+	return obj.Results, nil
 }
 
 func (c *Client) Search(ctx context.Context, query string, sort *Sort) ([]Object, error) {
