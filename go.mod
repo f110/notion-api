@@ -1,6 +1,6 @@
-module go.f110.dev/notion-api
+module go.f110.dev/notion-api/v2
 
-go 1.16
+go 1.17
 
 require (
 	github.com/jarcoal/httpmock v1.0.8
