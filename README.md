@@ -44,6 +44,9 @@ And example code exists under [example directory](./example)
 * [x] [Retrieve block children](https://developers.notion.com/reference/get-block-children)
 * [x] [Append block children](https://developers.notion.com/reference/patch-block-children)
 * [x] [Search](https://developers.notion.com/reference/post-search)
+* [x] [Create a database](https://developers.notion.com/reference/create-a-database)
+* [x] [Retrieve a block](https://developers.notion.com/reference/retrieve-a-block)
+* [x] [Update a block](https://developers.notion.com/reference/update-a-block)
 
 # Implemented version
 

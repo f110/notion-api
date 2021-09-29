@@ -349,6 +349,8 @@ func (c *Client) GetBlock(ctx context.Context, blockID string) (*Block, error) {
 	return obj, nil
 }
 
+// UpdateBlock can update a block
+// ref: https://developers.notion.com/reference/update-a-block
 func (c *Client) UpdateBlock(ctx context.Context, block *Block) (*Block, error) {
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(block); err != nil {
