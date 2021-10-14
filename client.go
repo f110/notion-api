@@ -190,6 +190,48 @@ func (c *Client) GetDatabase(ctx context.Context, databaseID string) (*Database,
 	return obj, nil
 }
 
+// UpdateDatabase can update a database.
+// ref: https://developers.notion.com/reference/update-a-database
+func (c *Client) UpdateDatabase(ctx context.Context, db *Database) (*Database, error) {
+	body := struct {
+		Title      []*RichTextObject            `json:"title,omitempty"`
+		Properties map[string]*PropertyMetadata `json:"properties"`
+	}{
+		Properties: db.Properties,
+	}
+
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(body); err != nil {
+		return nil, fmt.Errorf("notion: failed to encode request body: %v", err)
+	}
+	req, err := c.newRequest(ctx, http.MethodPatch, fmt.Sprintf("/databases/%s", db.ID), nil, buf)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return nil, ErrDatabaseNotFound
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusTooManyRequests:
+		return nil, ErrLimitExceeded
+	}
+
+	obj := &Database{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("notion: failed parse a response: %v", err)
+	}
+
+	return obj, nil
+}
+
 // GetPages can get all pages which belongs to the database.
 // ref: https://developers.notion.com/reference/post-database-query
 func (c *Client) GetPages(ctx context.Context, databaseID string, filter *Filter, sorts []*Sort) ([]*Page, error) {

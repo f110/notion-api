@@ -3,6 +3,8 @@ package notion
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -144,7 +146,7 @@ type Link struct {
 type Database struct {
 	*Meta
 
-	Parent         *PageParent                  `json:"parent"`
+	Parent         *PageParent                  `json:"parent,omitempty"`
 	CreatedTime    Time                         `json:"created_time,omitempty"`
 	LastEditedTime Time                         `json:"last_edited_time,omitempty"`
 	Title          []*RichTextObject            `json:"title"`
@@ -180,6 +182,23 @@ type PropertyMetadata struct {
 	CreatedBy      *struct{}            `json:"created_by,omitempty"`
 	LastEditedTime *struct{}            `json:"last_edited_time,omitempty"`
 	LastEditedBy   *struct{}            `json:"last_edited_by,omitempty"`
+}
+
+func (p *PropertyMetadata) String() string {
+	b := new(strings.Builder)
+	b.WriteString(p.Type)
+	b.WriteString(": ")
+
+	switch p.Type {
+	case "title":
+		b.WriteString(fmt.Sprintf("%v", p.Title))
+	case "number":
+		b.WriteString(fmt.Sprintf("%v", p.Number))
+	case "select":
+		b.WriteString(fmt.Sprintf("%v", p.Select))
+	}
+
+	return b.String()
 }
 
 type NumberProperty struct {

@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"go.f110.dev/notion-api"
+	"go.f110.dev/notion-api/v2"
 )
 
 func main() {
@@ -36,6 +36,11 @@ func main() {
 		}
 	case "get-database":
 		if err := getDatabase(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	case "update-database":
+		if err := updateDatabase(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -185,6 +190,43 @@ func getDatabase(args []string) error {
 		return err
 	}
 	fmt.Printf("%+v\n", database)
+
+	return nil
+}
+
+func updateDatabase(args []string) error {
+	databaseID := ""
+	token := ""
+	fs := flag.NewFlagSet("update-database", flag.ContinueOnError)
+	fs.StringVar(&databaseID, "database-id", "", "Database identifier")
+	fs.StringVar(&token, "token", "", "API Token")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	db, err := client.GetDatabase(context.Background(), databaseID)
+	if err != nil {
+		return err
+	}
+	s := struct{}{}
+	newDB := &notion.Database{
+		Meta: &notion.Meta{ID: db.ID},
+		Properties: map[string]*notion.PropertyMetadata{
+			"Foobar": {Name: "Foobar", RichText: &s},
+		},
+	}
+	db, err = client.UpdateDatabase(context.Background(), newDB)
+	if err != nil {
+		return err
+	}
+	for _, v := range db.Properties {
+		fmt.Printf("%s: %s\n", v.Name, v.Type)
+	}
 
 	return nil
 }
