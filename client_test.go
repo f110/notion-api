@@ -942,7 +942,7 @@ func TestPatchBlockChildren(t *testing.T) {
 	client, err := New(&http.Client{Transport: rt}, "https://example.com")
 	require.NoError(t, err)
 
-	block, err := client.AppendBlock(context.Background(), "9585d9b5-ad82-4221-9f82-a3a4767d5b92", []*Block{
+	blocks, err := client.AppendBlock(context.Background(), "9585d9b5-ad82-4221-9f82-a3a4767d5b92", []*Block{
 		{
 			Meta: &Meta{
 				Object: "block",
@@ -957,8 +957,10 @@ func TestPatchBlockChildren(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, "80434f64-2d08-414d-83b0-5fca519794bd", block.ID)
-	assert.True(t, block.HasChildren)
+	if assert.Len(t, blocks, 1) {
+		assert.Equal(t, "f4721248-0450-41a9-b0d9-e04b80354d4b", blocks[0].ID)
+		assert.False(t, blocks[0].HasChildren)
+	}
 }
 
 func TestPostSearch(t *testing.T) {

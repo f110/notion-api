@@ -14,7 +14,7 @@ type Meta struct {
 	// Type of object
 	Object string `json:"object,omitempty"`
 	// Unique identifier
-	ID string `json:"id"`
+	ID string `json:"id,omitempty"`
 }
 
 type ListMeta struct {
@@ -439,8 +439,8 @@ type Sort struct {
 type Block struct {
 	*Meta
 
-	CreatedTime    Time   `json:"created_time"`
-	LastEditedTime Time   `json:"last_edited_time"`
+	CreatedTime    Time   `json:"created_time,omitempty"`
+	LastEditedTime Time   `json:"last_edited_time,omitempty"`
 	HasChildren    bool   `json:"has_children"`
 	Archived       bool   `json:"archived"`
 	Type           string `json:"type"`
