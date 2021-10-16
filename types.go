@@ -151,6 +151,7 @@ type Database struct {
 	LastEditedTime Time                         `json:"last_edited_time,omitempty"`
 	Title          []*RichTextObject            `json:"title"`
 	Properties     map[string]*PropertyMetadata `json:"properties"`
+	URL            string                       `json:"url,omitempty"`
 }
 
 type DatabaseList struct {
