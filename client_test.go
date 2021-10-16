@@ -742,6 +742,23 @@ func TestGetBlock(t *testing.T) {
 	}
 }
 
+func TestDeleteBlock(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	rt.RegisterRegexpResponder(
+		http.MethodDelete,
+		regexp.MustCompile(`/v1/blocks/[a-z0-9-]{36}`),
+		httpmock.NewStringResponder(http.StatusOK, ""),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	err = client.DeleteBlock(context.Background(), "6fbac55c-9e74-4489-b386-0c88d5aa54dd")
+	require.NoError(t, err)
+}
+
 func TestGetBlocks(t *testing.T) {
 	t.Parallel()
 

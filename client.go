@@ -426,6 +426,30 @@ func (c *Client) UpdateBlock(ctx context.Context, block *Block) (*Block, error) 
 	return obj, nil
 }
 
+func (c *Client) DeleteBlock(ctx context.Context, blockID string) error {
+	req, err := c.newRequest(ctx, http.MethodDelete, fmt.Sprintf("/blocks/%s", blockID), nil, nil)
+	if err != nil {
+		return err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusBadRequest:
+		return ErrBadRequest
+	case http.StatusNotFound:
+		return ErrBlockNotFound
+	case http.StatusTooManyRequests:
+		return ErrLimitExceeded
+	}
+
+	return nil
+}
+
 // CreatePage can create a page.
 // ref: https://developers.notion.com/reference/post-page
 func (c *Client) CreatePage(ctx context.Context, page *Page) (*Page, error) {

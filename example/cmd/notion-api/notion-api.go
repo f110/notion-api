@@ -69,6 +69,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "delete-block":
+		if err := deleteBlock(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	case "create-page":
 		if err := createPage(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -359,6 +364,28 @@ func updateBlock(args []string) error {
 		return err
 	}
 	fmt.Printf("ID: %s %+v\n", block.ID, block)
+
+	return nil
+}
+
+func deleteBlock(args []string) error {
+	blockID := ""
+	token := ""
+	fs := flag.NewFlagSet("delete-block", flag.ContinueOnError)
+	fs.StringVar(&blockID, "block-id", "", "Block identifier")
+	fs.StringVar(&token, "token", "", "API Token")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	if err := client.DeleteBlock(context.Background(), blockID); err != nil {
+		return err
+	}
 
 	return nil
 }
