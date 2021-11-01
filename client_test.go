@@ -705,6 +705,31 @@ func TestGetPage(t *testing.T) {
 	assert.Equal(t, "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7", page.Properties["Test18"].LastEditedBy.ID)
 }
 
+func TestGetPageProperty(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/get-page-property.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodGet,
+		regexp.MustCompile(`/v1/pages/[a-z0-9-]{36}/properties/.+`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	property, err := client.GetPageProperty(context.Background(), "16493215-50a8-41b8-8b43-0a0c014a7910", "foobar")
+	require.NoError(t, err)
+
+	assert.Equal(t, "last_edited_time", property.Type)
+	assert.NotNil(t, property.LastEditedTime)
+}
+
 func TestGetBlock(t *testing.T) {
 	t.Parallel()
 

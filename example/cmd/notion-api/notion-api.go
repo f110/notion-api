@@ -54,6 +54,11 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case "get-page-property":
+		if err := getPageProperty(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 	case "get-block":
 		if err := getBlock(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -195,6 +200,9 @@ func getDatabase(args []string) error {
 		return err
 	}
 	fmt.Printf("%+v\n", database)
+	for _, v := range database.Properties {
+		fmt.Printf("%s: %+v\n", v.ID, v)
+	}
 
 	return nil
 }
@@ -256,6 +264,9 @@ func getPage(args []string) error {
 		return err
 	}
 	fmt.Printf("ID: %s %+v\n", pageID, page)
+	for name, v := range page.Properties {
+		fmt.Printf("%s: %+v\n", name, v)
+	}
 
 	return nil
 }
@@ -282,6 +293,32 @@ func getPages(args []string) error {
 	for _, page := range pages {
 		fmt.Printf("ID: %s %+v\n", page.ID, page)
 	}
+
+	return nil
+}
+
+func getPageProperty(args []string) error {
+	pageID := ""
+	propertyID := ""
+	token := ""
+	fs := flag.NewFlagSet("get-page-property", flag.ContinueOnError)
+	fs.StringVar(&pageID, "page-id", "", "Page identifier")
+	fs.StringVar(&propertyID, "property-id", "", "Property identifier")
+	fs.StringVar(&token, "token", "", "API Token")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+
+	client, err := newClient(token)
+	if err != nil {
+		return err
+	}
+
+	property, err := client.GetPageProperty(context.Background(), pageID, propertyID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", property)
 
 	return nil
 }

@@ -26,6 +26,7 @@ var (
 	ErrDatabaseNotFound = errors.New("notion: database not found")
 	ErrPageNotFound     = errors.New("notion: page not found")
 	ErrBlockNotFound    = errors.New("notion: block not found")
+	ErrPropertyNotFound = errors.New("notion: property not found")
 )
 
 type Client struct {
@@ -147,6 +148,11 @@ func (c *Client) ListDatabases(ctx context.Context) ([]*Database, error) {
 			res.Body.Close()
 			return nil, fmt.Errorf("failed parse a response: %v", err)
 		}
+		for _, v := range obj.Results {
+			if err := v.decode(); err != nil {
+				return nil, err
+			}
+		}
 		databases = append(databases, obj.Results...)
 		res.Body.Close()
 
@@ -185,6 +191,9 @@ func (c *Client) GetDatabase(ctx context.Context, databaseID string) (*Database,
 	obj := &Database{}
 	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
 		return nil, fmt.Errorf("failed parse a response: %v", err)
+	}
+	if err := obj.decode(); err != nil {
+		return nil, err
 	}
 
 	return obj, nil
@@ -311,6 +320,39 @@ func (c *Client) GetPage(ctx context.Context, pageID string) (*Page, error) {
 	}
 
 	obj := &Page{}
+	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
+		return nil, fmt.Errorf("failed parse a response body: %v", err)
+	}
+	if err := obj.decode(); err != nil {
+		return nil, err
+	}
+
+	return obj, nil
+}
+
+// GetPageProperty can get a page property item
+func (c *Client) GetPageProperty(ctx context.Context, pageID, propertyID string) (*PropertyData, error) {
+	req, err := c.newRequest(ctx, http.MethodGet, fmt.Sprintf("/pages/%s/properties/%s", pageID, propertyID), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	case http.StatusOK:
+	case http.StatusNotFound:
+		return nil, ErrPropertyNotFound
+	case http.StatusBadRequest:
+		return nil, ErrBadRequest
+	case http.StatusTooManyRequests:
+		return nil, ErrLimitExceeded
+	}
+
+	obj := &PropertyData{}
 	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
 		return nil, fmt.Errorf("failed parse a response body: %v", err)
 	}
@@ -479,6 +521,9 @@ func (c *Client) CreatePage(ctx context.Context, page *Page) (*Page, error) {
 	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
 		return nil, fmt.Errorf("failed parse a response: %v", err)
 	}
+	if err := obj.decode(); err != nil {
+		return nil, err
+	}
 
 	return obj, nil
 }
@@ -517,6 +562,9 @@ func (c *Client) UpdateProperties(ctx context.Context, pageID string, properties
 	obj := &Page{}
 	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
 		return nil, fmt.Errorf("failed parse a response: %v", err)
+	}
+	if err := obj.decode(); err != nil {
+		return nil, err
 	}
 
 	return obj, nil
@@ -619,10 +667,16 @@ func (c *Client) Search(ctx context.Context, query string, sort *Sort) ([]Object
 				if err := json.Unmarshal(*v, db); err != nil {
 					return nil, err
 				}
+				if err := db.decode(); err != nil {
+					return nil, err
+				}
 				tmp = append(tmp, db)
 			case "page":
 				page := &Page{}
 				if err := json.Unmarshal(*v, page); err != nil {
+					return nil, err
+				}
+				if err := page.decode(); err != nil {
 					return nil, err
 				}
 				tmp = append(tmp, page)
@@ -670,6 +724,9 @@ func (c *Client) CreateDatabase(ctx context.Context, db *Database) (*Database, e
 	obj := &Database{}
 	if err := json.NewDecoder(res.Body).Decode(obj); err != nil {
 		return nil, fmt.Errorf("notion: failed parse a response: %v", err)
+	}
+	if err := obj.decode(); err != nil {
+		return nil, err
 	}
 
 	return obj, nil

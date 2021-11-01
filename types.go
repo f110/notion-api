@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -154,6 +155,18 @@ type Database struct {
 	URL            string                       `json:"url,omitempty"`
 }
 
+func (d *Database) decode() error {
+	for _, v := range d.Properties {
+		id, err := url.QueryUnescape(v.ID)
+		if err != nil {
+			return err
+		}
+		v.ID = id
+	}
+
+	return nil
+}
+
 type DatabaseList struct {
 	*ListMeta
 	Results []*Database `json:"results"`
@@ -281,6 +294,18 @@ type Page struct {
 	Properties     map[string]*PropertyData `json:"properties"`
 	Children       []*Block                 `json:"children,omitempty"`
 	URL            string                   `json:"url,omitempty"`
+}
+
+func (p *Page) decode() error {
+	for _, v := range p.Properties {
+		id, err := url.PathUnescape(v.ID)
+		if err != nil {
+			return err
+		}
+		v.ID = id
+	}
+
+	return nil
 }
 
 type PageList struct {
