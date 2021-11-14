@@ -352,6 +352,16 @@
       "archived": false,
       "type": "breadcrumb",
       "breadcrumb": {}
+    },
+    {
+      "object": "block",
+      "id": "01131d29-8525-41eb-8dbc-615b68402408",
+      "created_time": "2021-11-14T12:13:00.000Z",
+      "last_edited_time": "2021-11-14T12:13:00.000Z",
+      "has_children": false,
+      "archived": false,
+      "type": "table_of_contents",
+      "table_of_contents": {}
     }
   ],
   "next_cursor": null,

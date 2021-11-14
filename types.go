@@ -484,6 +484,7 @@ type Block struct {
 	Code             *Code      `json:"code,omitempty"`
 	ColumnList       *struct{}  `json:"column_list,omitempty"`
 	Breadcrumb       *struct{}  `json:"breadcrumb,omitempty"`
+	TableOfContents  *struct{}  `json:"table_of_contents,omitempty"`
 }
 
 type BlockList struct {
