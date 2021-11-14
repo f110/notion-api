@@ -482,6 +482,7 @@ type Block struct {
 	ChildPage        *ChildPage `json:"child_page,omitempty"`
 	Divider          *struct{}  `json:"divider,omitempty"`
 	Code             *Code      `json:"code,omitempty"`
+	ColumnList       *struct{}  `json:"column_list"`
 }
 
 type BlockList struct {

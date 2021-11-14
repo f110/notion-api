@@ -805,7 +805,7 @@ func TestGetBlocks(t *testing.T) {
 	blocks, err := client.GetBlocks(context.Background(), "16493215-50a8-41b8-8b43-0a0c014a7910")
 	require.NoError(t, err)
 
-	require.Len(t, blocks, 10)
+	require.Len(t, blocks, 11)
 
 	assert.Equal(t, "paragraph", blocks[0].Type)
 	if assert.NotNil(t, blocks[0].Paragraph) {
@@ -874,6 +874,37 @@ func TestGetBlocks(t *testing.T) {
 			assert.Equal(t, " foobar", blocks[9].Paragraph.Text[1].PlainText)
 		}
 	}
+
+	assert.Equal(t, "column_list", blocks[10].Type)
+	assert.NotNil(t, blocks[10].ColumnList)
+	assert.True(t, blocks[10].HasChildren)
+}
+
+func TestGetBlocksChildren(t *testing.T) {
+	t.Parallel()
+
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile("./testdata/get-block-children-children.json")
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		http.MethodGet,
+		regexp.MustCompile(`/v1/blocks/[a-z0-9-]{36}/children`),
+		httpmock.NewStringResponder(
+			http.StatusOK,
+			string(res),
+		),
+	)
+
+	client, err := New(&http.Client{Transport: rt}, "https://example.com")
+	require.NoError(t, err)
+
+	blocks, err := client.GetBlocks(context.Background(), "16493215-50a8-41b8-8b43-0a0c014a7910")
+	require.NoError(t, err)
+
+	require.Len(t, blocks, 2)
+
+	assert.Equal(t, "column", blocks[0].Type)
+	assert.Equal(t, "column", blocks[1].Type)
 }
 
 func TestUpdateBlock(t *testing.T) {

@@ -1,0 +1,27 @@
+{
+  "object": "list",
+  "results": [
+    {
+      "object": "block",
+      "id": "345ad8ce-6df9-4e42-81c4-556a6e5b32a4",
+      "created_time": "2021-11-14T06:10:00.000Z",
+      "last_edited_time": "2021-11-14T06:44:00.000Z",
+      "has_children": true,
+      "archived": false,
+      "type": "column",
+      "column": {}
+    },
+    {
+      "object": "block",
+      "id": "52c1ff1a-9bc0-4cc9-b5f9-4f3941c556d9",
+      "created_time": "2021-11-14T06:10:00.000Z",
+      "last_edited_time": "2021-11-14T06:44:00.000Z",
+      "has_children": true,
+      "archived": false,
+      "type": "column",
+      "column": {}
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}
