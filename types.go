@@ -480,6 +480,7 @@ type Block struct {
 	ToDo             *ToDo      `json:"to_do,omitempty"`
 	Toggle           *Paragraph `json:"toggle,omitempty"`
 	ChildPage        *ChildPage `json:"child_page,omitempty"`
+	Divider          *struct{}  `json:"divider,omitempty"`
 }
 
 type BlockList struct {

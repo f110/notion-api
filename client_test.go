@@ -844,8 +844,8 @@ func TestGetBlocks(t *testing.T) {
 		}
 	}
 
-	// Actually, this block is a divider.
-	assert.Equal(t, "unsupported", blocks[5].Type)
+	assert.Equal(t, "divider", blocks[5].Type)
+	assert.NotNil(t, blocks[5].Divider)
 
 	assert.Equal(t, "bulleted_list_item", blocks[6].Type)
 	if assert.NotNil(t, blocks[6].BulletedListItem) {
