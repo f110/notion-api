@@ -805,7 +805,7 @@ func TestGetBlocks(t *testing.T) {
 	blocks, err := client.GetBlocks(context.Background(), "16493215-50a8-41b8-8b43-0a0c014a7910")
 	require.NoError(t, err)
 
-	require.Len(t, blocks, 11)
+	require.Len(t, blocks, 12)
 
 	assert.Equal(t, "paragraph", blocks[0].Type)
 	if assert.NotNil(t, blocks[0].Paragraph) {
@@ -878,6 +878,9 @@ func TestGetBlocks(t *testing.T) {
 	assert.Equal(t, "column_list", blocks[10].Type)
 	assert.NotNil(t, blocks[10].ColumnList)
 	assert.True(t, blocks[10].HasChildren)
+
+	assert.Equal(t, "breadcrumb", blocks[11].Type)
+	assert.NotNil(t, blocks[11].Breadcrumb)
 }
 
 func TestGetBlocksChildren(t *testing.T) {
