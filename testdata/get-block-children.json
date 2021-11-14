@@ -261,8 +261,30 @@
       "created_time": "2021-05-15T15:17:00.000Z",
       "last_edited_time": "2021-05-15T15:17:00.000Z",
       "has_children": false,
-      "type": "unsupported",
-      "unsupported": {}
+      "archived": false,
+      "type": "code",
+      "code": {
+        "text": [
+          {
+            "type": "text",
+            "text": {
+              "content": "func main() {\n\tos.Exit(1)\n}",
+              "link": null
+            },
+            "annotations": {
+              "bold": false,
+              "italic": false,
+              "strikethrough": false,
+              "underline": false,
+              "code": false,
+              "color": "default"
+            },
+            "plain_text": "func main() {\n\tos.Exit(1)\n}",
+            "href": null
+          }
+        ],
+        "language": "shell"
+      }
     },
     {
       "object": "block",

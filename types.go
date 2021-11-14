@@ -481,6 +481,7 @@ type Block struct {
 	Toggle           *Paragraph `json:"toggle,omitempty"`
 	ChildPage        *ChildPage `json:"child_page,omitempty"`
 	Divider          *struct{}  `json:"divider,omitempty"`
+	Code             *Code      `json:"code,omitempty"`
 }
 
 type BlockList struct {
@@ -505,6 +506,11 @@ type ToDo struct {
 
 type ChildPage struct {
 	Title string `json:"title"`
+}
+
+type Code struct {
+	Text     []*RichTextObject `json:"text"`
+	Language string            `json:"language"`
 }
 
 type SearchResult struct {

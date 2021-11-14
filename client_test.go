@@ -861,8 +861,11 @@ func TestGetBlocks(t *testing.T) {
 		}
 	}
 
-	// Actually, this block is a code block.
-	assert.Equal(t, "unsupported", blocks[8].Type)
+	assert.Equal(t, "code", blocks[8].Type)
+	if assert.Len(t, blocks[8].Code.Text, 1) {
+		assert.Equal(t, "func main() {\n\tos.Exit(1)\n}", blocks[8].Code.Text[0].Text.Content)
+		assert.Equal(t, "shell", blocks[8].Code.Language)
+	}
 
 	assert.Equal(t, "paragraph", blocks[9].Type)
 	if assert.NotNil(t, blocks[9].Paragraph) {
