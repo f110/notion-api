@@ -73,6 +73,17 @@ type User struct {
 	Bot    *Bot    `json:"bot"`
 }
 
+func (u *User) String() string {
+	var b strings.Builder
+	b.WriteString(u.Name)
+	if u.Person != nil && u.Person.Email != "" {
+		b.WriteString(" <")
+		b.WriteString(u.Person.Email)
+		b.WriteString(">")
+	}
+	return b.String()
+}
+
 type Date struct {
 	time.Time
 }
@@ -346,6 +357,94 @@ type PropertyData struct {
 	CreatedBy      *User             `json:"created_by,omitempty"`
 	LastEditedTime *Time             `json:"last_edited_time,omitempty"`
 	LastEditedBy   *User             `json:"last_edited_by,omitempty"`
+}
+
+// TODO: Support formula, relation and rollup
+func (d *PropertyData) String() string {
+	switch d.Type {
+	case "title":
+		if len(d.Title) == 0 {
+			return ""
+		}
+		return d.Title[0].PlainText
+	case "multi_select":
+		var b strings.Builder
+		for i, v := range d.MultiSelect {
+			if i != 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(v.Name)
+		}
+		return b.String()
+	case "text":
+		var b strings.Builder
+		for _, v := range d.Text {
+			b.WriteString(v.PlainText)
+		}
+		return b.String()
+	case "rich_text":
+		var b strings.Builder
+		for _, v := range d.RichText {
+			b.WriteString(v.PlainText)
+		}
+		return b.String()
+	case "number":
+		return fmt.Sprintf("%d", d.Number)
+	case "select":
+		if d.Select == nil {
+			return ""
+		}
+		return d.Select.Name
+	case "date":
+		if d.Date.Start == nil {
+			return ""
+		}
+		return d.Date.Start.Format("2006-01-02")
+	case "people":
+		var b strings.Builder
+		for i, p := range d.People {
+			if i != 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(p.String())
+		}
+		return b.String()
+	case "files":
+		var b strings.Builder
+		for i, f := range d.Files {
+			if i != 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(f.Name)
+		}
+		return b.String()
+	case "checkbox":
+		if d.Checkbox {
+			return "checked"
+		} else {
+			return "not checked"
+		}
+	case "url":
+		return d.URL
+	case "phone_number":
+		return d.PhoneNumber
+	case "created_time":
+		if d.CreatedTime == nil {
+			return ""
+		}
+		return d.CreatedTime.Format(time.RFC3339)
+	case "created_by":
+		return d.CreatedBy.String()
+	case "last_edited_time":
+		if d.LastEditedTime == nil {
+			return ""
+		}
+		return d.LastEditedTime.Format(time.RFC3339)
+	case "last_edited_by":
+		return d.LastEditedBy.String()
+	}
+
+	return ""
 }
 
 type File struct {
