@@ -1,4 +1,4 @@
-module go.f110.dev/notion-api/v2
+module go.f110.dev/notion-api/v3
 
 go 1.17
 

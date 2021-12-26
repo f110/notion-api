@@ -941,27 +941,38 @@ func TestUpdateBlock(t *testing.T) {
 func TestCreatePage(t *testing.T) {
 	t.Parallel()
 
-	rt := httpmock.NewMockTransport()
-	res, err := os.ReadFile("./testdata/post-page.json")
-	require.NoError(t, err)
-	rt.RegisterRegexpResponder(
-		http.MethodPost,
-		regexp.MustCompile(`/v1/pages$`),
-		httpmock.NewStringResponder(
-			http.StatusOK,
-			string(res),
-		),
-	)
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
 
-	client, err := New(&http.Client{Transport: rt}, "https://example.com")
-	require.NoError(t, err)
+		rt := mockTransport(t, http.MethodPost, `/v1/pages$`, http.StatusOK, "./testdata/post-page.json")
 
-	page, err := client.CreatePage(context.Background(), &Page{})
-	require.NoError(t, err)
+		client, err := New(&http.Client{Transport: rt}, "https://example.com")
+		require.NoError(t, err)
 
-	assert.Equal(t, "9585d9b5-ad82-4221-9f82-a3a4767d5b92", page.ID)
-	assert.Equal(t, int64(1621158331), page.CreatedTime.Unix())
-	assert.Equal(t, int64(1621158331), page.LastEditedTime.Unix())
+		page, err := client.CreatePage(context.Background(), &Page{})
+		require.NoError(t, err)
+
+		assert.Equal(t, "9585d9b5-ad82-4221-9f82-a3a4767d5b92", page.ID)
+		assert.Equal(t, int64(1621158331), page.CreatedTime.Unix())
+		assert.Equal(t, int64(1621158331), page.LastEditedTime.Unix())
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		t.Parallel()
+		
+		rt := mockTransport(t, http.MethodPost, `/v1/pages$`, http.StatusBadRequest, "./testdata/bad-request.json")
+
+		client, err := New(&http.Client{Transport: rt}, "https://example.com")
+		require.NoError(t, err)
+
+		page, err := client.CreatePage(context.Background(), &Page{})
+		assert.Nil(t, page)
+		assert.IsType(t, &Error{}, err)
+		e := err.(*Error)
+		assert.Equal(t, http.StatusBadRequest, e.Status)
+		assert.Equal(t, "validation_error", e.Code)
+		assert.NotEmpty(t, e.Message)
+	})
 }
 
 func TestPatchPage(t *testing.T) {
@@ -1119,4 +1130,20 @@ func TestCreateDatabase(t *testing.T) {
 
 	require.NotNil(t, db.Properties["Name"])
 	require.NotNil(t, db.Properties["Test1"])
+}
+
+func mockTransport(t *testing.T, method, pathRegex string, status int, responseFile string) *httpmock.MockTransport {
+	rt := httpmock.NewMockTransport()
+	res, err := os.ReadFile(responseFile)
+	require.NoError(t, err)
+	rt.RegisterRegexpResponder(
+		method,
+		regexp.MustCompile(pathRegex),
+		httpmock.NewStringResponder(
+			status,
+			string(res),
+		),
+	)
+
+	return rt
 }

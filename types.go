@@ -619,3 +619,16 @@ type SearchResult struct {
 	*ListMeta
 	Results []*json.RawMessage `json:"results"`
 }
+
+type Error struct {
+	*Meta
+	Status  int    `json:"status"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+var _ error = &Error{}
+
+func (e *Error) Error() string {
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+}
