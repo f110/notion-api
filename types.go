@@ -130,9 +130,9 @@ type Text struct {
 type Mention struct {
 	Type string `json:"type"`
 
-	User     *User `json:"user"`
-	Page     *Meta `json:"page"`
-	Database *Meta `json:"database"`
+	User     *User `json:"user,omitempty"`
+	Page     *Meta `json:"page,omitempty"`
+	Database *Meta `json:"database,omitempty"`
 }
 
 type Equation struct {
