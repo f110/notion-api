@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"go.f110.dev/notion-api/v2"
+	"go.f110.dev/notion-api/v3"
 )
 
 func main() {

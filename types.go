@@ -349,8 +349,8 @@ type Rollup struct {
 type Page struct {
 	*Meta
 
-	CreatedTime    Time                     `json:"created_time"`
-	LastEditedTime Time                     `json:"last_edited_time"`
+	CreatedTime    *Time                    `json:"created_time,omitempty"`
+	LastEditedTime *Time                    `json:"last_edited_time,omitempty"`
 	Archived       bool                     `json:"archived,omitempty"`
 	Parent         *PageParent              `json:"parent,omitempty"`
 	Properties     map[string]*PropertyData `json:"properties"`
@@ -417,7 +417,7 @@ type PropertyData struct {
 	MultiSelect    []*Option         `json:"multi_select,omitempty"`
 	Text           []*RichTextObject `json:"text,omitempty"`
 	RichText       []*RichTextObject `json:"rich_text,omitempty"`
-	Number         int               `json:"number,omitempty"`
+	Number         *int              `json:"number,omitempty"`
 	Select         *Option           `json:"select,omitempty"`
 	Date           *DateProperty     `json:"date,omitempty"`
 	People         []*User           `json:"people,omitempty"`

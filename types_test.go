@@ -90,7 +90,7 @@ func TestPropertyData_String(t *testing.T) {
 		{
 			In: &PropertyData{
 				Type:   "number",
-				Number: 10,
+				Number: intPtr(10),
 			},
 			Expect: "10",
 		},
@@ -212,6 +212,10 @@ func TestPropertyData_String(t *testing.T) {
 			assert.Equal(t, tc.Expect, tc.In.String())
 		})
 	}
+}
+
+func intPtr(v int) *int {
+	return &v
 }
 
 func MustParse(t time.Time, err error) time.Time {
