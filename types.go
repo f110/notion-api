@@ -349,8 +349,8 @@ type Rollup struct {
 type Page struct {
 	*Meta
 
-	CreatedTime    Time                     `json:"created_time"`
-	LastEditedTime Time                     `json:"last_edited_time"`
+	CreatedTime    *Time                    `json:"created_time,omitempty"`
+	LastEditedTime *Time                    `json:"last_edited_time,omitempty"`
 	Archived       bool                     `json:"archived,omitempty"`
 	Parent         *PageParent              `json:"parent,omitempty"`
 	Properties     map[string]*PropertyData `json:"properties"`

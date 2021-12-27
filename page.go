@@ -1,6 +1,10 @@
 package notion
 
-import "errors"
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+)
 
 func NewPage(db *Database, title string, children []*Block) (*Page, error) {
 	if db.ID == "" {
@@ -56,4 +60,40 @@ func (p *Page) SetProperty(key string, value *PropertyData) {
 	}
 
 	p.Properties[key] = value
+}
+
+func (p *Page) New() *Page {
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(p); err != nil {
+		return nil
+	}
+	newPage := new(Page)
+	if err := json.NewDecoder(buf).Decode(newPage); err != nil {
+		return nil
+	}
+	newPage.ID = ""
+	newPage.CreatedTime = nil
+	newPage.LastEditedTime = nil
+
+	for k, v := range newPage.Properties {
+		switch v.Type {
+		case PropertyTypeRelation:
+			if len(v.Relation) == 0 {
+				delete(newPage.Properties, k)
+			}
+		case PropertyTypeLastEditedTime, PropertyTypeLastEditedBy,
+			PropertyTypeCreatedTime, PropertyTypeCreatedBy:
+			delete(newPage.Properties, k)
+		case PropertyTypeSelect:
+			if v.Select == nil {
+				delete(newPage.Properties, k)
+			}
+		case PropertyTypeMultiSelect:
+			if len(v.MultiSelect) == 0 {
+				delete(newPage.Properties, k)
+			}
+		}
+	}
+
+	return newPage
 }
