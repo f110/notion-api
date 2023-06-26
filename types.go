@@ -14,10 +14,12 @@ type Object interface{}
 type ObjectType string
 
 const (
-	ObjectTypeDatabase ObjectType = "database"
-	ObjectTypePage     ObjectType = "page"
-	ObjectTypeBlock    ObjectType = "block"
-	ObjectTypeList     ObjectType = "list"
+	ObjectTypeDatabase   ObjectType = "database"
+	ObjectTypeDatabaseID ObjectType = "database_id"
+	ObjectTypePage       ObjectType = "page"
+	ObjectTypeBlock      ObjectType = "block"
+	ObjectTypeList       ObjectType = "list"
+	ObjectTypeUser       ObjectType = "user"
 )
 
 type Meta struct {
@@ -100,6 +102,10 @@ func (u *User) String() string {
 	return b.String()
 }
 
+type PartialUser struct {
+	*Meta
+}
+
 type Date struct {
 	time.Time
 }
@@ -122,7 +128,22 @@ type Person struct {
 	Email string `json:"email"`
 }
 
-type Bot struct{}
+type Bot struct {
+	Owner         *Owner `json:"owner"`
+	WorkspaceName string `json:"workspace_name"`
+}
+
+type OwnerType string
+
+const (
+	OwnerTypeWorkspace OwnerType = "workspace"
+	OwnerTypeUser      OwnerType = "user"
+)
+
+type Owner struct {
+	Type      OwnerType `json:"type"`
+	Workspace bool      `json:"workspace"`
+}
 
 type UserList struct {
 	*ListMeta
@@ -194,10 +215,16 @@ type Database struct {
 
 	Parent         *PageParent                  `json:"parent,omitempty"`
 	CreatedTime    Time                         `json:"created_time,omitempty"`
+	CreatedBy      *PartialUser                 `json:"created_by,omitempty"`
 	LastEditedTime Time                         `json:"last_edited_time,omitempty"`
+	LastEditedBy   *PartialUser                 `json:"last_edited_by,omitempty"`
 	Title          []*RichTextObject            `json:"title"`
 	Properties     map[string]*PropertyMetadata `json:"properties"`
 	URL            string                       `json:"url,omitempty"`
+	Description    []*RichTextObject            `json:"description,omitempty"`
+	IsInline       bool                         `json:"is_inline,omitempty"`
+	PublicURL      string                       `json:"public_url,omitempty"`
+	Archived       bool                         `json:"archived,omitempty"`
 }
 
 func (d *Database) decode() error {
@@ -407,6 +434,7 @@ const (
 	PropertyTypeCreatedBy      PropertyType = "created_by"
 	PropertyTypeLastEditedTime PropertyType = "last_edited_time"
 	PropertyTypeLastEditedBy   PropertyType = "last_edited_by"
+	PropertyTypeUniqueID       PropertyType = "unique_id"
 )
 
 type PropertyData struct {
@@ -433,6 +461,7 @@ type PropertyData struct {
 	CreatedBy      *User             `json:"created_by,omitempty"`
 	LastEditedTime *Time             `json:"last_edited_time,omitempty"`
 	LastEditedBy   *User             `json:"last_edited_by,omitempty"`
+	UniqueID       *UniqueID         `json:"unique_id,omitempty"`
 }
 
 // TODO: Support formula, relation and rollup
@@ -525,6 +554,11 @@ func (d *PropertyData) String() string {
 
 type File struct {
 	Name string `json:"name"`
+}
+
+type UniqueID struct {
+	Prefix string `json:"prefix,omitempty"`
+	Number int    `json:"number"`
 }
 
 type Filter struct {

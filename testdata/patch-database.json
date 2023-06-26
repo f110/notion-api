@@ -12,7 +12,7 @@
     "object": "user",
     "id": "2d2f95c8-c1b6-4ce1-88be-47b5b4e876e7"
   },
-  "last_edited_time": "2021-05-15T11:45:00.000Z",
+  "last_edited_time": "2023-06-14T14:34:00.000Z",
   "title": [
     {
       "type": "text",
@@ -35,6 +35,12 @@
   "description": [],
   "is_inline": false,
   "properties": {
+    "Foobar": {
+      "id": "%3CT%40e",
+      "name": "Foobar",
+      "type": "rich_text",
+      "rich_text": {}
+    },
     "Test17": {
       "id": "Ao%5DD",
       "name": "Test17",
