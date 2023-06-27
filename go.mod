@@ -3,7 +3,7 @@ module go.f110.dev/notion-api/v3
 go 1.20
 
 require (
-	github.com/jarcoal/httpmock v1.0.8
+	github.com/jarcoal/httpmock v1.3.0
 	github.com/stretchr/testify v1.8.4
 )
 
