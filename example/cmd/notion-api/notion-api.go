@@ -29,11 +29,6 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	case "list-databases":
-		if err := listDatabases(os.Args[2:]); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
 	case "get-database":
 		if err := getDatabase(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -152,29 +147,6 @@ func listUsers(args []string) error {
 	}
 	for _, user := range users {
 		fmt.Printf("ID: %s %+v\n", user.ID, user)
-	}
-
-	return nil
-}
-
-func listDatabases(args []string) error {
-	token := ""
-	fs := flag.NewFlagSet("list-databases", flag.ContinueOnError)
-	fs.StringVar(&token, "token", "", "API Token")
-	if err := fs.Parse(args); err != nil {
-		return err
-	}
-
-	client, err := newClient(token)
-	if err != nil {
-		return err
-	}
-	databases, err := client.ListDatabases(context.Background())
-	if err != nil {
-		return err
-	}
-	for _, database := range databases {
-		fmt.Printf("ID: %s %+v\n", database.ID, database)
 	}
 
 	return nil

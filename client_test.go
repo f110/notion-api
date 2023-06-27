@@ -72,132 +72,6 @@ func TestGetUser(t *testing.T) {
 	assert.Nil(t, user.Bot)
 }
 
-func TestListDatabases(t *testing.T) {
-	t.Parallel()
-
-	rt := httpmock.NewMockTransport()
-	res, err := os.ReadFile("./testdata/list-databases.json")
-	require.NoError(t, err)
-	rt.RegisterResponder(
-		http.MethodGet,
-		"/v1/databases",
-		httpmock.NewStringResponder(
-			http.StatusOK,
-			string(res),
-		),
-	)
-
-	client, err := New(&http.Client{Transport: rt}, "https://example.com")
-	require.NoError(t, err)
-
-	databases, err := client.ListDatabases(context.Background())
-	require.NoError(t, err)
-
-	require.Len(t, databases, 1)
-	db := databases[0]
-	assert.Equal(t, "a4f18e20-365d-4fe1-91e8-080381f877d5", db.ID)
-	assert.Equal(t, "database", db.Object)
-	assert.Equal(t, int64(1621068182), db.CreatedTime.Unix())
-	assert.Equal(t, int64(1621068420), db.LastEditedTime.Unix())
-	if assert.Len(t, db.Title, 1) {
-		assert.Equal(t, "text", db.Title[0].Type)
-		if assert.NotNil(t, db.Title[0].Text) {
-			assert.Equal(t, "For development", db.Title[0].Text.Content)
-			assert.Nil(t, db.Title[0].Text.Link)
-			assert.Equal(t, "For development", db.Title[0].PlainText)
-		}
-	}
-	assert.Len(t, db.Properties, 18)
-
-	require.NotNil(t, db.Properties["Name"])
-	require.NotNil(t, db.Properties["Tags"])
-	require.NotNil(t, db.Properties["Test1"])
-	require.NotNil(t, db.Properties["Test2"])
-	require.NotNil(t, db.Properties["Test3"])
-	require.NotNil(t, db.Properties["Test4"])
-	require.NotNil(t, db.Properties["Test5"])
-	require.NotNil(t, db.Properties["Test6"])
-	require.NotNil(t, db.Properties["Test7"])
-	require.NotNil(t, db.Properties["Test8"])
-	require.NotNil(t, db.Properties["Test9"])
-	require.NotNil(t, db.Properties["Test10"])
-	require.NotNil(t, db.Properties["Test11"])
-	// TODO: This is probably bug of Notion.
-	//require.NotNil(t, db.Properties["Test12"])
-	// TODO: This is probably bug of Notion.
-	//require.NotNil(t, db.Properties["Test13"])
-	require.NotNil(t, db.Properties["Test14"])
-	require.NotNil(t, db.Properties["Test15"])
-	require.NotNil(t, db.Properties["Test16"])
-	require.NotNil(t, db.Properties["Test17"])
-	require.NotNil(t, db.Properties["Test18"])
-
-	assert.Equal(t, "title", db.Properties["Name"].Type)
-	assert.NotNil(t, db.Properties["Name"].Title)
-
-	assert.Equal(t, "multi_select", db.Properties["Tags"].Type)
-	assert.NotNil(t, db.Properties["Tags"].MultiSelect)
-
-	assert.Equal(t, "rich_text", db.Properties["Test1"].Type)
-	assert.NotNil(t, db.Properties["Test1"].RichText)
-
-	assert.Equal(t, "number", db.Properties["Test2"].Type)
-	if assert.NotNil(t, db.Properties["Test2"].Number) {
-		assert.Equal(t, "number", db.Properties["Test2"].Number.Format)
-	}
-
-	assert.Equal(t, "select", db.Properties["Test3"].Type)
-	if assert.NotNil(t, db.Properties["Test3"].Select) {
-		if assert.Len(t, db.Properties["Test3"].Select.Options, 1) {
-			assert.Equal(t, "3e3c5d58-4313-439e-a46e-cfaacc843d09", db.Properties["Test3"].Select.Options[0].ID)
-			assert.Equal(t, "Baz", db.Properties["Test3"].Select.Options[0].Name)
-			assert.Equal(t, "gray", db.Properties["Test3"].Select.Options[0].Color)
-		}
-	}
-
-	assert.Equal(t, "multi_select", db.Properties["Test4"].Type)
-	if assert.NotNil(t, db.Properties["Test4"].MultiSelect) {
-		if assert.Len(t, db.Properties["Test4"].MultiSelect.Options, 1) {
-			assert.Equal(t, "3fe82728-0646-45db-89cf-025ac1a20f02", db.Properties["Test4"].MultiSelect.Options[0].ID)
-			assert.Equal(t, "Notion", db.Properties["Test4"].MultiSelect.Options[0].Name)
-			assert.Equal(t, "red", db.Properties["Test4"].MultiSelect.Options[0].Color)
-		}
-	}
-
-	assert.Equal(t, "date", db.Properties["Test5"].Type)
-	assert.NotNil(t, db.Properties["Test5"].Date)
-
-	assert.Equal(t, "people", db.Properties["Test6"].Type)
-	assert.NotNil(t, db.Properties["Test6"].People)
-
-	assert.Equal(t, "files", db.Properties["Test7"].Type)
-	assert.NotNil(t, db.Properties["Test7"].Files)
-
-	assert.Equal(t, "checkbox", db.Properties["Test8"].Type)
-	assert.NotNil(t, db.Properties["Test8"].Checkbox)
-
-	assert.Equal(t, "url", db.Properties["Test9"].Type)
-	assert.NotNil(t, db.Properties["Test9"].URL)
-
-	assert.Equal(t, "email", db.Properties["Test10"].Type)
-	assert.NotNil(t, db.Properties["Test10"].Email)
-
-	assert.Equal(t, "phone_number", db.Properties["Test11"].Type)
-	assert.NotNil(t, db.Properties["Test11"].PhoneNumber)
-
-	assert.Equal(t, "created_time", db.Properties["Test15"].Type)
-	assert.NotNil(t, db.Properties["Test15"].CreatedTime)
-
-	assert.Equal(t, "created_by", db.Properties["Test16"].Type)
-	assert.NotNil(t, db.Properties["Test16"].CreatedBy)
-
-	assert.Equal(t, "last_edited_time", db.Properties["Test17"].Type)
-	assert.NotNil(t, db.Properties["Test17"].LastEditedTime)
-
-	assert.Equal(t, "last_edited_by", db.Properties["Test18"].Type)
-	assert.NotNil(t, db.Properties["Test18"].LastEditedBy)
-}
-
 func TestGetDatabase(t *testing.T) {
 	t.Parallel()
 
@@ -959,7 +833,7 @@ func TestCreatePage(t *testing.T) {
 
 	t.Run("Error", func(t *testing.T) {
 		t.Parallel()
-		
+
 		rt := mockTransport(t, http.MethodPost, `/v1/pages$`, http.StatusBadRequest, "./testdata/bad-request.json")
 
 		client, err := New(&http.Client{Transport: rt}, "https://example.com")
