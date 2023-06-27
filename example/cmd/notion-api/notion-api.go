@@ -222,7 +222,12 @@ func getPagesCmd(parentCmd *cobra.Command) {
 				return err
 			}
 
-			pages, err := client.GetPages(context.Background(), databaseID, nil, nil)
+			pages, err := client.GetPages(context.Background(), databaseID, &notion.Filter{
+				Property: "Test1",
+				RichText: &notion.RichTextFilter{
+					IsNotEmpty: true,
+				},
+			}, nil)
 			if err != nil {
 				return err
 			}
