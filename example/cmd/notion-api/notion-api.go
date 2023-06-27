@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httputil"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -615,5 +617,30 @@ func createDatabaseCmd(parentCmd *cobra.Command) {
 func newClient(token string) (*notion.Client, error) {
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	tc := oauth2.NewClient(context.Background(), ts)
+	if os.Getenv("DEBUG") != "" {
+		tc.Transport = &dumpTransport{Transport: tc.Transport}
+	}
 	return notion.New(tc, notion.BaseURL)
+}
+
+type dumpTransport struct {
+	Transport http.RoundTripper
+}
+
+var _ http.RoundTripper = &dumpTransport{}
+
+func (t *dumpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	buf, err := httputil.DumpRequest(req, true)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(buf))
+
+	res, err := t.Transport.RoundTrip(req)
+	if buf, err := httputil.DumpResponse(res, true); err != nil {
+		return nil, err
+	} else {
+		fmt.Println(string(buf))
+	}
+	return res, err
 }
