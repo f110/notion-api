@@ -412,17 +412,17 @@ func createPageCmd(parentCmd *cobra.Command) {
 			}
 			var key string
 			for k, v := range db.Properties {
-				if v.Type == "rich_text" {
+				if v.Type == notion.PropertyTypeRichText {
 					key = k
 					break
 				}
 			}
 			if key != "" {
 				newPage.SetProperty(key, &notion.PropertyData{
-					Type: "rich_text",
+					Type: notion.PropertyTypeRichText,
 					RichText: []*notion.RichTextObject{
 						{
-							Type: "text",
+							Type: notion.RichTextObjectTypeText,
 							Text: &notion.Text{
 								Content: "Test value",
 							},
@@ -476,10 +476,10 @@ func updatePropertiesCmd(parentCmd *cobra.Command) {
 
 			properties := map[string]*notion.PropertyData{
 				key: {
-					Type: "rich_text",
+					Type: notion.PropertyTypeRichText,
 					RichText: []*notion.RichTextObject{
 						{
-							Type: "text",
+							Type: notion.RichTextObjectTypeText,
 							Text: &notion.Text{
 								Content: "Update property",
 							},
@@ -518,12 +518,12 @@ func appendBlocksCmd(parentCmd *cobra.Command) {
 			blocks, err := client.AppendBlock(context.Background(), pageID, []*notion.Block{
 				{
 					Meta: &notion.Meta{
-						Object: "block",
+						Object: notion.ObjectTypeBlock,
 					},
-					Type: "paragraph",
+					Type: notion.BlockTypeParagraph,
 					Paragraph: &notion.Paragraph{
 						Text: []*notion.RichTextObject{
-							{Type: "text", Text: &notion.Text{Content: "Good"}},
+							{Type: notion.RichTextObjectTypeText, Text: &notion.Text{Content: "Good"}},
 						},
 					},
 				},
