@@ -677,10 +677,10 @@ func TestGetBlock(t *testing.T) {
 	assert.False(t, block.Archived)
 	assert.Equal(t, "paragraph", block.Type)
 	if assert.NotNil(t, block.Paragraph) {
-		if assert.Len(t, block.Paragraph.Text, 1) {
-			assert.Equal(t, "text", block.Paragraph.Text[0].Type)
-			assert.Equal(t, "development", block.Paragraph.Text[0].Text.Content)
-			assert.Equal(t, "development", block.Paragraph.Text[0].PlainText)
+		if assert.Len(t, block.Paragraph.RichText, 1) {
+			assert.Equal(t, "text", block.Paragraph.RichText[0].Type)
+			assert.Equal(t, "development", block.Paragraph.RichText[0].Text.Content)
+			assert.Equal(t, "development", block.Paragraph.RichText[0].PlainText)
 		}
 	}
 }
@@ -727,38 +727,38 @@ func TestGetBlocks(t *testing.T) {
 
 	assert.Equal(t, "paragraph", blocks[0].Type)
 	if assert.NotNil(t, blocks[0].Paragraph) {
-		if assert.Len(t, blocks[0].Paragraph.Text, 1) {
-			assert.Equal(t, "text", blocks[0].Paragraph.Text[0].Type)
-			assert.Equal(t, "Body text", blocks[0].Paragraph.Text[0].PlainText)
+		if assert.Len(t, blocks[0].Paragraph.RichText, 1) {
+			assert.Equal(t, "text", blocks[0].Paragraph.RichText[0].Type)
+			assert.Equal(t, "Body text", blocks[0].Paragraph.RichText[0].PlainText)
 		}
 	}
 
 	assert.Equal(t, "heading_1", blocks[1].Type)
 	if assert.NotNil(t, blocks[1].Heading1) {
-		if assert.Len(t, blocks[1].Heading1.Text, 1) {
-			assert.Equal(t, "Title1", blocks[1].Heading1.Text[0].PlainText)
+		if assert.Len(t, blocks[1].Heading1.RichText, 1) {
+			assert.Equal(t, "Title1", blocks[1].Heading1.RichText[0].PlainText)
 		}
 	}
 
 	assert.Equal(t, "heading_2", blocks[2].Type)
 	if assert.NotNil(t, blocks[2].Heading2) {
-		if assert.Len(t, blocks[2].Heading2.Text, 1) {
-			assert.Equal(t, "Title2", blocks[2].Heading2.Text[0].PlainText)
+		if assert.Len(t, blocks[2].Heading2.RichText, 1) {
+			assert.Equal(t, "Title2", blocks[2].Heading2.RichText[0].PlainText)
 		}
 	}
 
 	assert.Equal(t, "heading_3", blocks[3].Type)
 	if assert.NotNil(t, blocks[3].Heading3) {
-		if assert.Len(t, blocks[3].Heading3.Text, 1) {
-			assert.Equal(t, "Title3", blocks[3].Heading3.Text[0].PlainText)
+		if assert.Len(t, blocks[3].Heading3.RichText, 1) {
+			assert.Equal(t, "Title3", blocks[3].Heading3.RichText[0].PlainText)
 		}
 	}
 
 	assert.Equal(t, "paragraph", blocks[4].Type)
 	if assert.NotNil(t, blocks[4].Paragraph) {
-		if assert.Len(t, blocks[4].Paragraph.Text, 3) {
-			assert.True(t, blocks[4].Paragraph.Text[0].Annotations.Bold)
-			assert.True(t, blocks[4].Paragraph.Text[1].Annotations.Italic)
+		if assert.Len(t, blocks[4].Paragraph.RichText, 3) {
+			assert.True(t, blocks[4].Paragraph.RichText[0].Annotations.Bold)
+			assert.True(t, blocks[4].Paragraph.RichText[1].Annotations.Italic)
 		}
 	}
 
@@ -767,29 +767,29 @@ func TestGetBlocks(t *testing.T) {
 
 	assert.Equal(t, "bulleted_list_item", blocks[6].Type)
 	if assert.NotNil(t, blocks[6].BulletedListItem) {
-		if assert.Len(t, blocks[6].BulletedListItem.Text, 1) {
-			assert.Equal(t, "Bullet1", blocks[6].BulletedListItem.Text[0].PlainText)
+		if assert.Len(t, blocks[6].BulletedListItem.RichText, 1) {
+			assert.Equal(t, "Bullet1", blocks[6].BulletedListItem.RichText[0].PlainText)
 		}
 	}
 
 	assert.Equal(t, "bulleted_list_item", blocks[7].Type)
 	if assert.NotNil(t, blocks[7].BulletedListItem) {
-		if assert.Len(t, blocks[7].BulletedListItem.Text, 1) {
-			assert.Equal(t, "Bullet2", blocks[7].BulletedListItem.Text[0].PlainText)
+		if assert.Len(t, blocks[7].BulletedListItem.RichText, 1) {
+			assert.Equal(t, "Bullet2", blocks[7].BulletedListItem.RichText[0].PlainText)
 		}
 	}
 
 	assert.Equal(t, "code", blocks[8].Type)
-	if assert.Len(t, blocks[8].Code.Text, 1) {
-		assert.Equal(t, "func main() {\n\tos.Exit(1)\n}", blocks[8].Code.Text[0].Text.Content)
+	if assert.Len(t, blocks[8].Code.RichText, 1) {
+		assert.Equal(t, "func main() {\n\tos.Exit(1)\n}", blocks[8].Code.RichText[0].Text.Content)
 		assert.Equal(t, "shell", blocks[8].Code.Language)
 	}
 
 	assert.Equal(t, "paragraph", blocks[9].Type)
 	if assert.NotNil(t, blocks[9].Paragraph) {
-		if assert.Len(t, blocks[9].Paragraph.Text, 2) {
-			assert.True(t, blocks[9].Paragraph.Text[0].Annotations.Code)
-			assert.Equal(t, " foobar", blocks[9].Paragraph.Text[1].PlainText)
+		if assert.Len(t, blocks[9].Paragraph.RichText, 2) {
+			assert.True(t, blocks[9].Paragraph.RichText[0].Annotations.Code)
+			assert.Equal(t, " foobar", blocks[9].Paragraph.RichText[1].PlainText)
 		}
 	}
 
@@ -960,7 +960,7 @@ func TestPatchBlockChildren(t *testing.T) {
 			},
 			Type: "paragraph",
 			Paragraph: &Paragraph{
-				Text: []*RichTextObject{
+				RichText: []*RichTextObject{
 					{Type: "text", Text: &Text{Content: "Good"}},
 				},
 			},

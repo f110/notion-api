@@ -345,7 +345,7 @@ func updateBlockCmd(parentCmd *cobra.Command) {
 				return err
 			}
 
-			block.Paragraph.Text[0].Text = &notion.Text{Content: "Updated"}
+			block.Paragraph.RichText[0].Text = &notion.Text{Content: "Updated"}
 
 			block, err = client.UpdateBlock(context.Background(), block)
 			if err != nil {
@@ -522,7 +522,7 @@ func appendBlocksCmd(parentCmd *cobra.Command) {
 					},
 					Type: notion.BlockTypeParagraph,
 					Paragraph: &notion.Paragraph{
-						Text: []*notion.RichTextObject{
+						RichText: []*notion.RichTextObject{
 							{Type: notion.RichTextObjectTypeText, Text: &notion.Text{Content: "Good"}},
 						},
 					},
