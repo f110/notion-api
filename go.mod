@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/stretchr/testify v1.8.4
+	golang.org/x/oauth2 v0.23.0
 )
 
 require (
