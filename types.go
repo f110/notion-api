@@ -29,6 +29,8 @@ type Meta struct {
 	ID string `json:"id,omitempty"`
 }
 
+func (m *Meta) GetID() string { return m.ID }
+
 type ListMeta struct {
 	// Type of object
 	Object     ObjectType `json:"object,omitempty"`
