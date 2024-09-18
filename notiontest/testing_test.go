@@ -20,13 +20,12 @@ func TestMock(t *testing.T) {
 	mock.
 		User("Alice").
 		User("Bob").
-		BotUser("Client")
+		BotUser("Client").
+		Database(notiontest.NewDatabase("Sample database"))
 
 	tr := httpmock.NewMockTransport()
 	mock.RegisterMock(tr)
 
-	//ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: mock.GenerateBotToken("Client")})
-	//tc := oauth2.NewClient(context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{Transport: tr}), ts)
 	tc := mock.AuthenticatedClient("Client")
 	client, err := notion.New(tc, "https://example.com")
 	require.NoError(t, err)
@@ -73,5 +72,35 @@ func TestMock(t *testing.T) {
 		err = json.NewDecoder(res.Body).Decode(&botUser)
 		require.NoError(t, err)
 		assert.Equal(t, "Client", botUser.Name)
+	})
+
+	t.Run("CreateDatabase", func(t *testing.T) {
+		db, err := client.CreateDatabase(context.Background(), notiontest.NewDatabase("New database"))
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, db.ID)
+	})
+
+	t.Run("GetDatabase", func(t *testing.T) {
+		sampleDB := mock.FindDatabase("Sample database")
+		db, err := client.GetDatabase(context.Background(), sampleDB[0].GetID())
+		require.NoError(t, err)
+		assert.NotNil(t, db)
+
+		_, err = client.GetDatabase(context.Background(), "b3575be4-77e4-429c-a4da-6835721cc2ba") // Unknown ID
+		require.Error(t, err)
+		var nErr *notion.Error
+		assert.ErrorAs(t, err, &nErr)
+		assert.Equal(t, 404, nErr.Status)
+	})
+
+	t.Run("UpdateDatabase", func(t *testing.T) {
+		db := mock.NewDatabase("Sample database for Update")
+		db.Properties["Sub title"] = &notion.PropertyMetadata{Name: "Sub title"}
+		updatedDB, err := client.UpdateDatabase(context.Background(), db)
+		require.NoError(t, err)
+
+		assert.Equal(t, db.GetID(), updatedDB.GetID())
+		assert.Contains(t, updatedDB.Properties, "Sub title")
 	})
 }

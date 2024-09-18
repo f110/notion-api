@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/spf13/cobra v1.7.0
 	go.f110.dev/notion-api/v3 v3.0.0-20230605161555-3ab6980af3ac
-	golang.org/x/oauth2 v0.0.0-20210427180440-81ed05c6b58c
+	golang.org/x/oauth2 v0.23.0
 )
 
 require (

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	mrand "math/rand"
@@ -26,11 +27,15 @@ const (
 type versionHandler interface {
 	ListAllUsers(req *http.Request) (*http.Response, error)
 	GetUser(req *http.Request) (*http.Response, error)
+	CreateDatabase(req *http.Request) (*http.Response, error)
+	GetDatabase(req *http.Request) (*http.Response, error)
+	UpdateDatabase(req *http.Request) (*http.Response, error)
 }
 
 type Mock struct {
-	users  []*notion.User
-	tokens map[string]*notion.User
+	users     []*notion.User
+	databases []*notion.Database
+	tokens    map[string]*notion.User
 }
 
 // NewMock returns the mock object for Notion API.
@@ -40,6 +45,7 @@ func NewMock() *Mock {
 
 func (n *Mock) RegisterMock(mock *httpmock.MockTransport) {
 	n.registerUsers(mock)
+	n.registerDatabases(mock)
 }
 
 // AuthenticatedClient returns a http client of the authenticated bot user.
@@ -53,16 +59,35 @@ func (n *Mock) AuthenticatedClient(botName string) *http.Client {
 	return tc
 }
 
-// User adds new user for human
+// User adds new user for human.
 func (n *Mock) User(name string) *Mock {
 	n.users = append(n.users, &notion.User{Meta: &notion.Meta{ID: newID(), Object: "user"}, Type: notion.UserTypePerson, Name: name})
 	return n
 }
 
-// BotUser adds new user for a machine
+// BotUser adds new user for a machine.
 func (n *Mock) BotUser(name string) *Mock {
 	n.users = append(n.users, &notion.User{Meta: &notion.Meta{ID: newID(), Object: "user"}, Type: notion.UserTypeBot, Name: name})
 	return n
+}
+
+// Database adds a database.
+func (n *Mock) Database(db *notion.Database) *Mock {
+	if db.ID == "" {
+		if db.Meta == nil {
+			db.Meta = &notion.Meta{}
+		}
+		db.ID = newID()
+	}
+	n.databases = append(n.databases, db)
+	return n
+}
+
+// NewDatabase creates and adds a database.
+func (n *Mock) NewDatabase(title string) *notion.Database {
+	db := NewDatabase(title)
+	n.Database(db)
+	return db
 }
 
 // FindUser returns notion.User with a name.
@@ -73,6 +98,20 @@ func (n *Mock) FindUser(name string) *notion.User {
 		}
 	}
 	return nil
+}
+
+// FindDatabase returns the list of notion.Database that has specified title.
+func (n *Mock) FindDatabase(title string) []*notion.Database {
+	var dbs []*notion.Database
+	for _, db := range n.databases {
+		if len(db.Title) == 0 {
+			continue
+		}
+		if db.Title[0].Text.Content == title {
+			dbs = append(dbs, db)
+		}
+	}
+	return dbs
 }
 
 // GenerateBotToken generates a new token for the bot with a name
@@ -109,7 +148,7 @@ func (n *Mock) registerUsers(mock *httpmock.MockTransport) {
 	// Get the user
 	n.registerResponderForAuthorizedRequest(mock,
 		http.MethodGet,
-		regexp.MustCompile(`/v1/users/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`),
+		regexp.MustCompile(`/v1/users/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$`),
 		func(req *http.Request, handler versionHandler) (*http.Response, error) {
 			return handler.GetUser(req)
 		},
@@ -124,6 +163,35 @@ func (n *Mock) registerUsers(mock *httpmock.MockTransport) {
 			return httpmock.NewJsonResponse(http.StatusOK, user)
 		},
 	)
+}
+
+func (n *Mock) registerDatabases(mock *httpmock.MockTransport) {
+	// Create a database
+	n.registerResponderForAuthorizedRequest(mock,
+		http.MethodPost,
+		regexp.MustCompile(`/v1/databases$`),
+		func(req *http.Request, handler versionHandler) (*http.Response, error) {
+			return handler.CreateDatabase(req)
+		},
+	)
+	// Get a database
+	n.registerResponderForAuthorizedRequest(mock,
+		http.MethodGet,
+		regexp.MustCompile(`/v1/databases/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$`),
+		func(req *http.Request, handler versionHandler) (*http.Response, error) {
+			return handler.GetDatabase(req)
+		},
+	)
+	// Update a database
+	n.registerResponderForAuthorizedRequest(mock,
+		http.MethodPatch,
+		regexp.MustCompile(`/v1/databases/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$`),
+		func(req *http.Request, handler versionHandler) (*http.Response, error) {
+			return handler.UpdateDatabase(req)
+		},
+	)
+	// Query a database
+	// TODO: This isn't implemented yet.
 }
 
 func (n *Mock) registerResponderForAuthorizedRequest(mock *httpmock.MockTransport, method string, urlRegexp *regexp.Regexp, responder func(req *http.Request, h versionHandler) (*http.Response, error)) {
@@ -160,7 +228,7 @@ func (n *Mock) getToken(req *http.Request) string {
 func (n *Mock) getHandler(header http.Header) versionHandler {
 	switch header.Get("Notion-Version") {
 	case "2022-06-28":
-		return &version220628{users: n.users}
+		return &version220628{m: n}
 	default:
 		return nil
 	}
@@ -191,13 +259,13 @@ func (n *Mock) unauthorizedError() (*http.Response, error) {
 }
 
 type version220628 struct {
-	users []*notion.User
+	m *Mock
 }
 
 var _ versionHandler = (*version220628)(nil)
 
 func (h *version220628) ListAllUsers(req *http.Request) (*http.Response, error) {
-	results, hasMore, nextCursor := sliceByPagination(req, h.users)
+	results, hasMore, nextCursor := sliceByPagination(req, h.m.users)
 	res := &notion.UserList{
 		ListMeta: &notion.ListMeta{
 			Object:     "list",
@@ -211,21 +279,72 @@ func (h *version220628) ListAllUsers(req *http.Request) (*http.Response, error) 
 
 func (h *version220628) GetUser(req *http.Request) (*http.Response, error) {
 	_, userID := path.Split(req.URL.Path)
-	for _, v := range h.users {
+	for _, v := range h.m.users {
 		if v.GetID() == userID {
 			return httpmock.NewJsonResponse(http.StatusOK, v)
 		}
 	}
 
-	e := &notion.Error{
-		Meta: &notion.Meta{
-			Object: "object",
-		},
-		Status:  400,
-		Code:    "object_not_found",
-		Message: fmt.Sprintf("Could not find user with ID: %s.", userID),
-	}
+	e := newErrorResponse(400, "object_not_found", fmt.Sprintf("Could not find user with ID: %s.", userID))
 	return httpmock.NewJsonResponse(e.Status, e)
+}
+
+func (h *version220628) CreateDatabase(req *http.Request) (*http.Response, error) {
+	d := json.NewDecoder(req.Body)
+	var db *notion.Database
+	if err := d.Decode(&db); err != nil {
+		return httpmock.NewJsonResponse(http.StatusBadRequest, nil)
+	}
+
+	if db.Meta == nil {
+		db.Meta = &notion.Meta{}
+	}
+	db.ID = newID()
+	h.m.Database(db)
+	return httpmock.NewJsonResponse(http.StatusOK, db)
+}
+
+func (h *version220628) GetDatabase(req *http.Request) (*http.Response, error) {
+	_, databaseID := path.Split(req.URL.Path)
+	for _, v := range h.m.databases {
+		if v.GetID() == databaseID {
+			return httpmock.NewJsonResponse(http.StatusOK, v)
+		}
+	}
+
+	e := newErrorResponse(404, "object_not_found", fmt.Sprintf("Could not find database with ID: %s. Make sure the relevant pages and databases are shared with your integration.", databaseID))
+	return httpmock.NewJsonResponse(e.Status, e)
+}
+
+func (h *version220628) UpdateDatabase(req *http.Request) (*http.Response, error) {
+	_, databaseID := path.Split(req.URL.Path)
+	var db *notion.Database
+	for _, v := range h.m.databases {
+		if v.GetID() == databaseID {
+			db = v
+			break
+		}
+	}
+	if db == nil {
+		e := newErrorResponse(404, "object_not_found", fmt.Sprintf("Could not find database with ID: %s. Make sure the relevant pages and databases are shared with your integration.", databaseID))
+		return httpmock.NewJsonResponse(e.Status, e)
+	}
+
+	var updatedDB *notion.Database
+	if err := json.NewDecoder(req.Body).Decode(&updatedDB); err != nil {
+		return httpmock.NewJsonResponse(http.StatusBadRequest, nil)
+	}
+	updatedDB.Meta = db.Meta
+	for i, v := range h.m.databases {
+		if v.GetID() == db.GetID() {
+			h.m.databases = h.m.databases[:i]
+			h.m.databases = append(h.m.databases, updatedDB)
+			h.m.databases = append(h.m.databases, h.m.databases[i+1:]...)
+			break
+		}
+	}
+
+	return httpmock.NewJsonResponse(http.StatusOK, updatedDB)
 }
 
 type abstractObject interface {
@@ -285,4 +404,15 @@ func newID() string {
 	st[23] = '-'
 	hex.Encode(st[24:], buf[10:])
 	return string(st)
+}
+
+func newErrorResponse(status int, code, msg string) *notion.Error {
+	return &notion.Error{
+		Meta: &notion.Meta{
+			Object: "object",
+		},
+		Status:  status,
+		Code:    code,
+		Message: msg,
+	}
 }
