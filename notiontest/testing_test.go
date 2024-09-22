@@ -21,7 +21,12 @@ func TestMock(t *testing.T) {
 		User("Alice").
 		User("Bob").
 		BotUser("Client").
-		Database(notiontest.NewDatabase("Sample database"))
+		Database(notiontest.NewDatabase("Sample database")).
+		Page(
+			notiontest.NewPage("Sample page",
+				notiontest.PageProperty("Col 1", &notion.PropertyData{Type: notion.PropertyTypeText, Text: []*notion.RichTextObject{{Type: notion.RichTextObjectTypeText, Text: &notion.Text{Content: "Foo"}}}}),
+			),
+		)
 
 	tr := httpmock.NewMockTransport()
 	mock.RegisterMock(tr)
@@ -102,5 +107,36 @@ func TestMock(t *testing.T) {
 
 		assert.Equal(t, db.GetID(), updatedDB.GetID())
 		assert.Contains(t, updatedDB.Properties, "Sub title")
+	})
+
+	t.Run("CreatePage", func(t *testing.T) {
+		page, err := client.CreatePage(context.Background(), &notion.Page{})
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, page.ID)
+	})
+
+	t.Run("GetPage", func(t *testing.T) {
+		samplePage := mock.FindPage("Sample page")
+		page, err := client.GetPage(context.Background(), samplePage[0].GetID())
+		require.NoError(t, err)
+		assert.NotNil(t, page)
+
+		_, err = client.GetPage(context.Background(), "b3575be4-77e4-429c-a4da-6835721cc2ba") // Unknown ID
+		require.Error(t, err)
+		var nErr *notion.Error
+		assert.ErrorAs(t, err, &nErr)
+		assert.Equal(t, 404, nErr.Status)
+	})
+
+	t.Run("GetPageProperty", func(t *testing.T) {
+		samplePage := mock.FindPage("Sample page")
+		property, err := client.GetPageProperty(context.Background(), samplePage[0].GetID(), samplePage[0].Properties["Col 1"].ID)
+		require.NoError(t, err)
+		assert.NotNil(t, property)
+
+		require.NotEmpty(t, property.Text)
+		require.NotNil(t, property.Text[0].Text)
+		assert.Equal(t, "Foo", property.Text[0].Text.Content)
 	})
 }

@@ -9,6 +9,7 @@ import (
 	"io"
 	mrand "math/rand"
 	"net/http"
+	"net/url"
 	"path"
 	"regexp"
 	"strconv"
@@ -30,11 +31,16 @@ type versionHandler interface {
 	CreateDatabase(req *http.Request) (*http.Response, error)
 	GetDatabase(req *http.Request) (*http.Response, error)
 	UpdateDatabase(req *http.Request) (*http.Response, error)
+	CreatePage(req *http.Request) (*http.Response, error)
+	GetPage(req *http.Request) (*http.Response, error)
+	GetPageProperty(req *http.Request) (*http.Response, error)
+	UpdatePageProperty(req *http.Request) (*http.Response, error)
 }
 
 type Mock struct {
 	users     []*notion.User
 	databases []*notion.Database
+	pages     []*notion.Page
 	tokens    map[string]*notion.User
 }
 
@@ -46,6 +52,7 @@ func NewMock() *Mock {
 func (n *Mock) RegisterMock(mock *httpmock.MockTransport) {
 	n.registerUsers(mock)
 	n.registerDatabases(mock)
+	n.registerPages(mock)
 }
 
 // AuthenticatedClient returns a http client of the authenticated bot user.
@@ -61,25 +68,43 @@ func (n *Mock) AuthenticatedClient(botName string) *http.Client {
 
 // User adds new user for human.
 func (n *Mock) User(name string) *Mock {
-	n.users = append(n.users, &notion.User{Meta: &notion.Meta{ID: newID(), Object: "user"}, Type: notion.UserTypePerson, Name: name})
+	n.users = append(n.users, &notion.User{Meta: &notion.Meta{ID: newUUID(), Object: "user"}, Type: notion.UserTypePerson, Name: name})
 	return n
 }
 
 // BotUser adds new user for a machine.
 func (n *Mock) BotUser(name string) *Mock {
-	n.users = append(n.users, &notion.User{Meta: &notion.Meta{ID: newID(), Object: "user"}, Type: notion.UserTypeBot, Name: name})
+	n.users = append(n.users, &notion.User{Meta: &notion.Meta{ID: newUUID(), Object: "user"}, Type: notion.UserTypeBot, Name: name})
 	return n
 }
 
 // Database adds a database.
 func (n *Mock) Database(db *notion.Database) *Mock {
-	if db.ID == "" {
+	if db.Meta == nil || db.GetID() == "" {
 		if db.Meta == nil {
 			db.Meta = &notion.Meta{}
 		}
-		db.ID = newID()
+		db.ID = newUUID()
 	}
 	n.databases = append(n.databases, db)
+	return n
+}
+
+// Page adds a page.
+func (n *Mock) Page(page *notion.Page) *Mock {
+	if page.Meta == nil || page.GetID() == "" {
+		if page.Meta == nil {
+			page.Meta = &notion.Meta{}
+		}
+		page.ID = newUUID()
+	}
+	for _, v := range page.Properties {
+		if v.ID != "" {
+			continue
+		}
+		v.ID = newNotionID()
+	}
+	n.pages = append(n.pages, page)
 	return n
 }
 
@@ -112,6 +137,22 @@ func (n *Mock) FindDatabase(title string) []*notion.Database {
 		}
 	}
 	return dbs
+}
+
+func (n *Mock) FindPage(name string) []*notion.Page {
+	var pages []*notion.Page
+	for _, p := range n.pages {
+		if _, ok := p.Properties["Name"]; !ok {
+			continue
+		}
+		if len(p.Properties["Name"].Title) == 0 {
+			continue
+		}
+		if p.Properties["Name"].Title[0].Text.Content == name {
+			pages = append(pages, p)
+		}
+	}
+	return pages
 }
 
 // GenerateBotToken generates a new token for the bot with a name
@@ -192,6 +233,41 @@ func (n *Mock) registerDatabases(mock *httpmock.MockTransport) {
 	)
 	// Query a database
 	// TODO: This isn't implemented yet.
+}
+
+func (n *Mock) registerPages(mock *httpmock.MockTransport) {
+	// Create a page
+	n.registerResponderForAuthorizedRequest(mock,
+		http.MethodPost,
+		regexp.MustCompile(`/v1/pages$`),
+		func(req *http.Request, handler versionHandler) (*http.Response, error) {
+			return handler.CreatePage(req)
+		},
+	)
+	// Get a page
+	n.registerResponderForAuthorizedRequest(mock,
+		http.MethodGet,
+		regexp.MustCompile(`/v1/pages/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$`),
+		func(req *http.Request, handler versionHandler) (*http.Response, error) {
+			return handler.GetPage(req)
+		},
+	)
+	// Get a page property item
+	n.registerResponderForAuthorizedRequest(mock,
+		http.MethodGet,
+		regexp.MustCompile(`/v1/pages/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}/properties/[[:graph:]]+$`),
+		func(req *http.Request, handler versionHandler) (*http.Response, error) {
+			return handler.GetPageProperty(req)
+		},
+	)
+	// Update a page property
+	n.registerResponderForAuthorizedRequest(mock,
+		http.MethodPatch,
+		regexp.MustCompile(`/v1/pages/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$`),
+		func(req *http.Request, handler versionHandler) (*http.Response, error) {
+			return handler.UpdatePageProperty(req)
+		},
+	)
 }
 
 func (n *Mock) registerResponderForAuthorizedRequest(mock *httpmock.MockTransport, method string, urlRegexp *regexp.Regexp, responder func(req *http.Request, h versionHandler) (*http.Response, error)) {
@@ -296,10 +372,6 @@ func (h *version220628) CreateDatabase(req *http.Request) (*http.Response, error
 		return httpmock.NewJsonResponse(http.StatusBadRequest, nil)
 	}
 
-	if db.Meta == nil {
-		db.Meta = &notion.Meta{}
-	}
-	db.ID = newID()
 	h.m.Database(db)
 	return httpmock.NewJsonResponse(http.StatusOK, db)
 }
@@ -347,6 +419,72 @@ func (h *version220628) UpdateDatabase(req *http.Request) (*http.Response, error
 	return httpmock.NewJsonResponse(http.StatusOK, updatedDB)
 }
 
+func (h *version220628) CreatePage(req *http.Request) (*http.Response, error) {
+	d := json.NewDecoder(req.Body)
+	var page *notion.Page
+	if err := d.Decode(&page); err != nil {
+		return httpmock.NewJsonResponse(http.StatusBadRequest, nil)
+	}
+
+	h.m.Page(page)
+	return httpmock.NewJsonResponse(http.StatusOK, page)
+}
+
+func (h *version220628) GetPage(req *http.Request) (*http.Response, error) {
+	_, pageID := path.Split(req.URL.Path)
+	for _, v := range h.m.pages {
+		if v.GetID() == pageID {
+			return httpmock.NewJsonResponse(http.StatusOK, v)
+		}
+	}
+
+	e := newErrorResponse(404, "object_not_found", fmt.Sprintf("Could not find page with ID: %s. Make sure the relevant pages and databases are shared with your integration.", pageID))
+	return httpmock.NewJsonResponse(e.Status, e)
+}
+
+func (h *version220628) GetPageProperty(req *http.Request) (*http.Response, error) {
+	s := strings.Split(req.URL.Path, "/")
+	pageID, propertyID := s[3], s[5]
+	for _, v := range h.m.pages {
+		if v.GetID() != pageID {
+			continue
+		}
+		for _, p := range v.Properties {
+			if p.ID == propertyID {
+				return httpmock.NewJsonResponse(http.StatusOK, p)
+			}
+		}
+	}
+
+	e := newErrorResponse(404, "object_not_found", "")
+	return httpmock.NewJsonResponse(e.Status, e)
+}
+
+func (h *version220628) UpdatePageProperty(req *http.Request) (*http.Response, error) {
+	_, pageID := path.Split(req.URL.Path)
+	var page *notion.Page
+	for _, v := range h.m.pages {
+		if v.GetID() == pageID {
+			page = v
+			break
+		}
+	}
+	if page == nil {
+		e := newErrorResponse(404, "object_not_found", fmt.Sprintf("Could not find page with ID: %s. Make sure the relevant pages and databases are shared with your integration.", pageID))
+		return httpmock.NewJsonResponse(e.Status, e)
+	}
+
+	var pageProperties *notion.Page
+	if err := json.NewDecoder(req.Body).Decode(&pageProperties); err != nil {
+		return httpmock.NewJsonResponse(http.StatusBadRequest, nil)
+	}
+	for name, data := range pageProperties.Properties {
+		page.Properties[name] = data
+	}
+
+	return httpmock.NewJsonResponse(http.StatusOK, page)
+}
+
 type abstractObject interface {
 	GetID() string
 }
@@ -386,7 +524,7 @@ func getPagination(req *http.Request) (startCursor string, pageSize int) {
 	return req.URL.Query().Get("start_cursor"), pageSize
 }
 
-func newID() string {
+func newUUID() string {
 	buf := make([]byte, 16)
 	io.ReadFull(rand.Reader, buf)
 
@@ -404,6 +542,14 @@ func newID() string {
 	st[23] = '-'
 	hex.Encode(st[24:], buf[10:])
 	return string(st)
+}
+
+func newNotionID() string {
+	buf := make([]byte, 4)
+	for i := 0; i < 4; i++ {
+		buf[i] = byte(mrand.Intn(78) + 48)
+	}
+	return url.QueryEscape(string(buf))
 }
 
 func newErrorResponse(status int, code, msg string) *notion.Error {
